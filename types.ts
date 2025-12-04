@@ -21,5 +21,5 @@ export enum ModelType {
   PRO = 'gemini-3-pro-preview'
 }
 
-export type Theme = 'default' | 'neo' | 'zen' | 'paper';
+export type Theme = 'default' | 'neo' | 'zen' | 'paper' | 'wanderlust';
 export type LayoutMode = 'classic' | 'wanderlust' | 'neo' | 'zen' | 'paper';

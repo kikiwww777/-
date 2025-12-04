@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Message, Role, Theme } from '../types';
-import { User, AlertCircle, Sparkles, Leaf, Pen, Check, Square, CheckSquare, Circle, CheckCircle } from 'lucide-react';
+import { User, AlertCircle, Sparkles, Leaf, Pen, Check, Square, CheckSquare, Circle, CheckCircle, Plane } from 'lucide-react';
 
 interface ChatMessageProps {
   message: Message;
@@ -60,6 +60,18 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, theme }) => {
         checked: 'text-blue-600',
         textChecked: 'line-through decoration-wavy decoration-red-400 text-gray-400'
       }
+    },
+    wanderlust: {
+      userAvatar: 'bg-gradient-to-tr from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-500/30',
+      botAvatar: 'bg-white text-cyan-600 shadow-[0_8px_16px_rgba(0,0,0,0.08)] border border-white',
+      userBubble: 'bg-gradient-to-tr from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-500/20 rounded-2xl rounded-tr-sm backdrop-blur-md',
+      botBubble: 'bg-white/90 backdrop-blur-xl text-slate-700 shadow-[0_4px_20px_rgba(0,0,0,0.04)] rounded-2xl rounded-tl-sm border border-white/50',
+      time: 'text-slate-400 font-medium text-[10px] tracking-wider uppercase',
+      checkbox: {
+        unchecked: 'text-slate-300 hover:text-cyan-500',
+        checked: 'text-cyan-500',
+        textChecked: 'line-through text-slate-400 decoration-cyan-500/30'
+      }
     }
   };
 
@@ -70,6 +82,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, theme }) => {
      if (message.isError) return <AlertCircle size={18} />;
      if (theme === 'zen') return <Leaf size={18} />;
      if (theme === 'paper') return <Pen size={16} />;
+     if (theme === 'wanderlust') return <Plane size={18} />;
      return <Sparkles size={18} />;
   };
 
@@ -104,7 +117,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, theme }) => {
         return (
           <div 
             key={idx} 
-            className="flex items-start gap-2.5 py-1 cursor-pointer group"
+            className="flex items-start gap-2.5 py-1.5 cursor-pointer group"
             onClick={() => toggleCheck(idx)}
           >
             <div className={`mt-0.5 transition-colors ${isChecked ? currentStyle.checkbox.checked : currentStyle.checkbox.unchecked}`}>
@@ -135,7 +148,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, theme }) => {
 
   return (
     <div className={`flex w-full mb-6 ${isUser ? 'justify-end' : 'justify-start'}`}>
-      <div className={`flex max-w-[90%] md:max-w-[75%] ${isUser ? 'flex-row-reverse' : 'flex-row'} gap-3`}>
+      <div className={`flex max-w-[90%] md:max-w-[80%] ${isUser ? 'flex-row-reverse' : 'flex-row'} gap-3`}>
         
         {/* Avatar */}
         <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-300 ${

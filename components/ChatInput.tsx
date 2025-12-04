@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Loader2, ListChecks, PenTool, Sticker } from 'lucide-react';
+import { Send, Loader2, ListChecks, PenTool, Sticker, Search } from 'lucide-react';
 import { Theme } from '../types';
 
 interface ChatInputProps {
@@ -14,7 +14,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSend, isLoading, theme }
 
   const themeStyles = {
     default: {
-      container: 'pb-4 pt-2 px-4', // Removed bg and fixed pos
+      container: 'pb-4 pt-2 px-4', 
       wrapper: 'bg-white shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-[#eff2f6] rounded-2xl focus-within:border-[#9ec5ff] focus-within:shadow-blue-glow',
       icon: 'text-[#909399]',
       input: 'text-[#303133] placeholder:text-[#909399]',
@@ -40,6 +40,13 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSend, isLoading, theme }
       icon: 'text-blue-500',
       input: 'text-gray-800 placeholder:text-gray-400 font-medium',
       button: 'bg-blue-400 text-white border-2 border-black hover:bg-blue-500 rounded-md'
+    },
+    wanderlust: {
+      container: 'pb-4 pt-2 px-6',
+      wrapper: 'bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.1)] rounded-full focus-within:bg-white focus-within:shadow-[0_8px_40px_rgba(0,180,216,0.15)] focus-within:border-cyan-100 ring-1 ring-black/5',
+      icon: 'text-cyan-600',
+      input: 'text-slate-800 placeholder:text-slate-400 font-medium',
+      button: 'bg-gradient-to-tr from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30 rounded-full hover:scale-105 active:scale-95'
     }
   };
 
@@ -77,6 +84,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSend, isLoading, theme }
   const getIcon = () => {
       if (theme === 'zen') return <PenTool size={20} />;
       if (theme === 'paper') return <Sticker size={22} />;
+      if (theme === 'wanderlust') return <Search size={22} />;
       return <ListChecks size={22} />;
   }
 
@@ -85,9 +93,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSend, isLoading, theme }
       <div className="max-w-3xl mx-auto relative">
         <form 
           onSubmit={handleSubmit} 
-          className={`relative flex items-end gap-2 transition-all duration-200 overflow-hidden ${currentStyle.wrapper}`}
+          className={`relative flex items-end gap-2 transition-all duration-300 overflow-hidden ${currentStyle.wrapper}`}
         >
-          <div className={`pl-4 py-4 ${currentStyle.icon}`}>
+          <div className={`pl-5 py-4 ${currentStyle.icon}`}>
              {getIcon()}
           </div>
           <textarea
@@ -95,7 +103,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSend, isLoading, theme }
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={theme === 'paper' ? "写下你的旅行计划..." : theme === 'zen' ? "记录下一次旅程..." : "输入目的地，创建新行程..."}
+            placeholder={theme === 'wanderlust' ? "告诉我目的地，为您规划行程..." : "输入目的地，创建新行程..."}
             className={`w-full py-4 pr-14 bg-transparent border-none focus:ring-0 resize-none max-h-[150px] text-base ${currentStyle.input}`}
             rows={1}
             disabled={isLoading}
@@ -103,9 +111,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSend, isLoading, theme }
           <button
             type="submit"
             disabled={!input.trim() || isLoading}
-            className={`absolute right-2 bottom-2 p-2.5 transition-all duration-200 ${currentStyle.button} ${
+            className={`absolute right-2 bottom-2 p-2.5 transition-all duration-300 ${currentStyle.button} ${
                 !input.trim() || isLoading 
-                ? 'opacity-50 cursor-not-allowed shadow-none'
+                ? 'opacity-50 cursor-not-allowed shadow-none grayscale'
                 : 'hover:opacity-90'
             }`}
           >
