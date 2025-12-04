@@ -1,0 +1,5 @@
+{
+  "name": "Travel Check System",
+  "description": "A smart travel checklist assistant featuring multiple themes (Classic, Wanderlust, Pop, Zen, Paper) and interactive verification logic.",
+  "requestFramePermissions": []
+}
