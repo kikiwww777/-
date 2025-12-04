@@ -16,8 +16,7 @@ import {
   Luggage, Globe2, Tent, Ticket, Landmark,
   ShoppingBag, Palmtree, Building2, Gift, 
   MoreHorizontal, Stamp, Tag, BriefcaseBusiness,
-  Train, Car, PartyPopper, Paperclip, Star, Smile,
-  Sun, Cloud
+  Train, Car, PartyPopper, Paperclip, Star, Smile
 } from 'lucide-react';
 
 // --- TYPES & MOCK DATA ---
@@ -75,39 +74,6 @@ const MOCK_TRIPS: Trip[] = [
     image: 'https://images.unsplash.com/photo-1504609773096-104ff2c73ba4?auto=format&fit=crop&q=80&w=600',
   }
 ];
-
-// --- HELPER COMPONENTS FOR PAPER DECORATION ---
-
-/* CURSOR_GUIDE: Hand-drawn wiggle line SVG to replace standard CSS borders */
-const DoodleUnderline = () => (
-  <svg width="100%" height="6" viewBox="0 0 100 6" preserveAspectRatio="none" className="opacity-40 text-gray-400 mt-1">
-    <path d="M0 3 Q 5 0, 10 3 T 20 3 T 30 3 T 40 3 T 50 3 T 60 3 T 70 3 T 80 3 T 90 3 T 100 3" 
-          stroke="currentColor" strokeWidth="2" fill="none" vectorEffect="non-scaling-stroke"/>
-  </svg>
-);
-
-/* CURSOR_GUIDE: Random decorative doodles (spirals, stars) to place in background */
-const RandomDoodle = ({ type }: { type: 'spiral' | 'burst' | 'zigzag' }) => {
-  if (type === 'spiral') {
-    return (
-      <svg width="40" height="40" viewBox="0 0 50 50" className="opacity-10 pointer-events-none text-gray-800 rotate-12">
-        <path d="M25 25 m0 0 a 5 5 0 1 0 10 0 a 10 10 0 1 0 -20 0 a 15 15 0 1 0 30 0" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
-      </svg>
-    );
-  }
-  if (type === 'burst') {
-    return (
-      <svg width="30" height="30" viewBox="0 0 30 30" className="opacity-20 pointer-events-none text-yellow-500">
-        <path d="M15 0 L15 30 M0 15 L30 15 M5 5 L25 25 M25 5 L5 25" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      </svg>
-    );
-  }
-  return (
-    <svg width="60" height="20" viewBox="0 0 60 20" className="opacity-10 pointer-events-none text-blue-800">
-      <path d="M0 10 Q 15 0, 30 10 T 60 10" stroke="currentColor" strokeWidth="2" fill="none" />
-    </svg>
-  );
-};
 
 const App: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -235,17 +201,10 @@ const App: React.FC = () => {
     // 2. Color Classes Configuration (Backgrounds & Text)
     const colors = {
       classic: {
-        /* 
-           CURSOR_FIX: Optimized Classic Palette
-           - Tourism: Sky/Cyan (Fresh, Outdoors)
-           - Business: Royal Blue (Professional, Trust)
-           - Family: Rose/Pink (Warmth, Care) - Replaces heavy orange
-           - Other: Slate/Blue-Grey (Neutral, Sophisticated) - Replaces heavy purple
-        */
-        tourism: 'bg-[#e0f2fe] text-[#0284c7]', // Sky-100 / Sky-600
-        business: 'bg-[#eff6ff] text-[#2563eb]', // Blue-50 / Blue-600
-        family: 'bg-[#fff1f2] text-[#e11d48]',   // Rose-50 / Rose-600
-        other: 'bg-[#f8fafc] text-[#64748b]'      // Slate-50 / Slate-500
+        tourism: 'bg-emerald-50 text-emerald-600',
+        business: 'bg-blue-50 text-blue-600',
+        family: 'bg-orange-50 text-orange-600',
+        other: 'bg-violet-50 text-violet-600'
       },
       neo: {
         tourism: 'bg-[#ffdc00]', // Bright Yellow
@@ -294,34 +253,29 @@ const App: React.FC = () => {
 
     // 1. CLASSIC: Standard App UI (WeChat Style)
     if (layoutMode === 'classic') {
-      /* 
-         CURSOR_FIX: Optimized Status Colors for Classic Mode
-         - "Preparing": Blue-100 bg with Blue-700 text (Standard, Clean)
-         - "Done": Slate-100 bg with Slate-400 text (Low contrast, fades away)
-      */
-      const statusColor = trip.status === '准备中' ? 'bg-blue-50 text-blue-600 border border-blue-100' : 'bg-slate-100 text-slate-400 border border-transparent';
+      const statusColor = trip.status === '准备中' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500';
       
       return (
-        <div key={trip.id} className="bg-white rounded-[16px] p-4 mb-3 shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-slate-50 flex justify-between items-center active:bg-gray-50 transition-colors">
+        <div key={trip.id} className="bg-white rounded-[16px] p-4 mb-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)] border border-gray-100 flex justify-between items-center active:bg-gray-50 transition-colors">
           <div className="flex gap-4 items-center">
              {/* Icon: Rounded Squircle */}
-             <div className={`w-12 h-12 rounded-[16px] flex items-center justify-center shrink-0 ${colorClass} ${trip.status === '已完成' ? 'opacity-50 grayscale' : ''}`}>
+             <div className={`w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0 ${colorClass} ${trip.status === '已完成' ? 'opacity-50 grayscale' : ''}`}>
                <Icon size={22} />
              </div>
              <div>
                <div className="flex items-center gap-2 mb-1">
-                 <h3 className={`text-[15px] font-bold tracking-tight ${trip.status === '已完成' ? 'text-gray-400' : 'text-[#1e293b]'}`}>{trip.title}</h3>
+                 <h3 className={`text-[15px] font-bold tracking-tight ${trip.status === '已完成' ? 'text-gray-400' : 'text-[#333]'}`}>{trip.title}</h3>
                  {trip.isCoop && <span className="bg-indigo-50 text-indigo-600 px-1.5 py-[2px] rounded text-[10px] font-bold border border-indigo-100">协作</span>}
                </div>
                <div className="flex items-center gap-2">
                  {/* Status: Standard Pill Badge */}
-                 <span className={`px-2 py-[2px] rounded-[6px] text-[10px] font-medium ${statusColor}`}>{trip.status}</span>
-                 <span className="text-xs text-gray-400 font-medium">{trip.date}</span>
+                 <span className={`px-2 py-[2px] rounded-[4px] text-[10px] font-medium ${statusColor}`}>{trip.status}</span>
+                 <span className="text-xs text-gray-400">{trip.date}</span>
                </div>
              </div>
           </div>
           <button onClick={() => handleCheckTrip(trip.title)} className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-             trip.status === '已完成' ? 'bg-gray-50 text-gray-300' : 'bg-blue-50 text-blue-500 hover:bg-blue-500 hover:text-white'
+             trip.status === '已完成' ? 'bg-gray-50 text-gray-300' : 'bg-gray-50 text-gray-400 hover:bg-[#07c160] hover:text-white'
           }`}>
             <ArrowRight size={16} />
           </button>
@@ -447,93 +401,83 @@ const App: React.FC = () => {
     // 5. PAPER: Sticker / Journal Style
     if (layoutMode === 'paper') {
       /* 
-         CURSOR_FIX: Enhanced "Paper/Scrapbook" Aesthetic
-         - Removed "hanging photo" layout entirely.
-         - ADDED: `DoodleUnderline` for title.
-         - ADDED: `FoldedCorner` (CSS trick) for bottom-right corner.
-         - ADDED: `RandomDoodle` for background texture.
-         - ENHANCED: Washi Tape now has a zig-zag clip-path for realism.
-         - ENHANCED: Sticker icon has a thicker white border and drop shadow.
+         CURSOR_FIX: 
+         - "Scrapbook" Aesthetic: Added Washi Tape visuals and Hand-drawn elements.
+         - "Stamp" Status: Status is now a rotated stamp instead of a pill.
+         - "Doodles": Added random star decorations.
+         - CURSOR_FIX_UPDATE: Removed "hanging photo" form entirely. Replaced with hand-drawn cartoon sticker/pattern.
       */
       
-      // Background colors
+      // Determine background color based on type for variety
       const cardBg = trip.status === '已完成' ? 'bg-gray-100' : 
-                     trip.type === 'tourism' ? 'bg-[#f0fdf4]' : 
-                     trip.type === 'business' ? 'bg-[#eff6ff]' : 
-                     trip.type === 'family' ? 'bg-[#fff7ed]' : 'bg-[#faf5ff]';
+                     trip.type === 'tourism' ? 'bg-[#f0fdf4]' : // green-50ish
+                     trip.type === 'business' ? 'bg-[#eff6ff]' : // blue-50ish
+                     trip.type === 'family' ? 'bg-[#fff7ed]' : 'bg-[#faf5ff]'; // orange/purple
 
-      // Pick a random doodle based on trip ID (stable per render)
-      const doodleType = trip.id === '1' ? 'spiral' : trip.id === '2' ? 'burst' : 'zigzag';
+      // Random-ish rotation for the stamp
       const stampRotation = trip.id === '1' ? 'rotate-12' : trip.id === '2' ? '-rotate-6' : 'rotate-3';
 
       return (
-        <div key={trip.id} className={`relative border border-gray-300 p-5 mb-6 shadow-[3px_3px_0px_rgba(0,0,0,0.05)] rounded-sm hover:shadow-[5px_5px_0px_rgba(0,0,0,0.1)] transition-all group overflow-hidden ${cardBg} ${
+        <div key={trip.id} className={`relative border border-gray-300 p-4 mb-6 shadow-[3px_3px_0px_rgba(0,0,0,0.05)] rounded-sm hover:shadow-[5px_5px_0px_rgba(0,0,0,0.1)] transition-all group overflow-hidden ${cardBg} ${
             trip.status === '已完成' ? 'opacity-80' : ''
         }`}>
           
-          {/* CURSOR_GUIDE: CSS Folded Corner Effect (Bottom Right) */}
-          <div className="absolute bottom-0 right-0 w-6 h-6 bg-gradient-to-tl from-gray-300 to-transparent opacity-50 pointer-events-none"></div>
-          <div className="absolute bottom-0 right-0 w-0 h-0 border-t-[20px] border-r-[20px] border-t-transparent border-r-white/60 drop-shadow-md pointer-events-none"></div>
-
-          {/* CURSOR_GUIDE: Background Doodles (Absolute Positioned) */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-0">
-             <RandomDoodle type={doodleType} />
+          {/* Visual Decor: Washi Tape on Top Left */}
+          <div className="absolute -top-3 -left-8 w-24 h-6 bg-yellow-200/60 -rotate-45 opacity-70"></div>
+          
+          {/* Visual Decor: Doodle Star */}
+          <div className="absolute bottom-2 right-1 text-gray-300/50 transform rotate-12 pointer-events-none">
+             <Star size={40} strokeWidth={1} />
           </div>
 
-          {/* Visual Decor: Zig-Zag Washi Tape */}
-          <div className="absolute -top-3 -left-8 w-28 h-7 bg-yellow-200/80 -rotate-45 opacity-90 shadow-sm z-20" style={{ clipPath: 'polygon(0% 0%, 100% 0%, 98% 10%, 100% 20%, 98% 30%, 100% 40%, 98% 50%, 100% 60%, 98% 70%, 100% 80%, 98% 90%, 100% 100%, 0% 100%, 2% 90%, 0% 80%, 2% 70%, 0% 60%, 2% 50%, 0% 40%, 2% 30%, 0% 20%, 2% 10%)' }}></div>
-          
-          {/* Visual Decor: Floating Elements (Little crosses or dots) */}
-          <div className="absolute top-4 left-1/2 text-gray-300 font-mono text-xs select-none pointer-events-none">+ + +</div>
-
-          {/* Status: Hand-Stamped Effect (Rotated) */}
-          <div className={`absolute top-3 right-3 border-[3px] border-double rounded-lg px-2 py-0.5 text-[10px] font-black tracking-widest uppercase transform ${stampRotation} opacity-80 z-20 mix-blend-multiply ${
+          {/* Status: Hand-Stamped Effect */}
+          <div className={`absolute top-2 right-2 border-[3px] border-double rounded-lg px-2 py-0.5 text-[10px] font-black tracking-widest uppercase transform ${stampRotation} opacity-80 ${
              trip.status === '准备中' ? 'border-red-500 text-red-600' : 'border-gray-500 text-gray-500'
           }`}>
              {trip.status}
           </div>
 
-          <div className="flex items-start gap-5 mt-2 relative z-10">
-             {/* Icon: Sticker Style with thick white border */}
+          <div className="flex items-start gap-4 mt-2 relative z-10">
+             {/* Icon: Hand-drawn Cartoon Sticker (No more Polaroid frame) */}
              <div className="shrink-0 relative group-hover:rotate-6 transition-transform duration-300">
-                <div className={`w-16 h-16 flex items-center justify-center rounded-full border-4 border-white shadow-[0_4px_6px_rgba(0,0,0,0.1)] ${
+                <div className={`w-16 h-16 flex items-center justify-center rounded-full border-2 border-gray-800 shadow-[2px_2px_0px_rgba(0,0,0,0.1)] ${
                     trip.type === 'tourism' ? 'bg-[#bbf7d0]' : 
                     trip.type === 'business' ? 'bg-[#bfdbfe]' : 
                     trip.type === 'family' ? 'bg-[#fed7aa]' : 'bg-[#e9d5ff]'
                 }`}>
-                   <Icon size={28} strokeWidth={2.5} className="text-gray-800" />
+                   <Icon size={32} strokeWidth={2.5} className="text-gray-800" />
                 </div>
-                {/* Sparkle deco sticker */}
-                <div className="absolute -top-2 -right-2 text-yellow-400 drop-shadow-sm rotate-12 bg-white rounded-full p-0.5 border border-gray-100">
+                {/* Sparkle deco */}
+                <div className="absolute -top-1 -right-1 text-yellow-400 drop-shadow-sm">
                    <Sparkles size={14} fill="currentColor" />
                 </div>
              </div>
 
-             <div className="flex-1 min-w-0 pt-1">
+             <div className="flex-1 min-w-0">
                 <div className="flex justify-between items-start">
-                   <h3 className="text-xl font-bold text-gray-800 leading-tight font-sans truncate pr-8 tracking-tight">
+                   <h3 className="text-lg font-bold text-gray-800 leading-tight font-sans truncate pr-8">
                       {trip.title}
                    </h3>
                 </div>
                 
-                {/* CURSOR_GUIDE: Replaced CSS border with SVG DoodleUnderline */}
-                <DoodleUnderline />
+                {/* Hand-drawn underline style */}
+                <div className="w-full h-1 bg-transparent border-b-2 border-gray-300 border-dotted my-2 opacity-50"></div>
 
-                <div className="flex flex-wrap items-center gap-3 text-xs font-bold text-gray-500 mt-3 mb-4 font-mono">
-                   <span className="flex items-center gap-1 bg-white/50 px-1 rounded"><MapPin size={12} /> {trip.location.split('·')[1] || trip.location}</span>
-                   <span className="flex items-center gap-1 bg-white/50 px-1 rounded"><Calendar size={12} /> {trip.date}</span>
-                   {trip.isCoop && <span className="flex items-center gap-1 text-purple-600 bg-purple-50 px-1 rounded border border-purple-200 transform -rotate-2"><Users size={12} /> Team</span>}
+                <div className="flex flex-wrap items-center gap-3 text-xs font-bold text-gray-500 mb-3 font-mono">
+                   {/* Restored location here since it was removed from photo */}
+                   <span className="flex items-center gap-1"><MapPin size={12} /> {trip.location.split('·')[1] || trip.location}</span>
+                   <span className="flex items-center gap-1"><Calendar size={12} /> {trip.date}</span>
+                   {trip.isCoop && <span className="flex items-center gap-1 text-purple-500 bg-purple-100 px-1 rounded-sm border border-purple-200 transform -rotate-2"><Users size={12} /> Team</span>}
                 </div>
 
                 <div className="flex justify-end">
-                   <button onClick={() => handleCheckTrip(trip.title)} className={`flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-full border-2 transition-all ${
+                   <button onClick={() => handleCheckTrip(trip.title)} className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full border transition-colors ${
                       trip.status === '准备中' 
-                        ? 'text-blue-600 border-blue-200 bg-blue-50 hover:bg-blue-100 hover:border-blue-300' 
+                        ? 'text-blue-600 border-blue-200 bg-blue-50 hover:bg-blue-100' 
                         : 'text-gray-500 border-gray-200 bg-gray-50'
                    }`}>
                       <span>{trip.status === '准备中' ? '打开检查表' : '回顾行程'}</span> 
-                      {/* Animated Arrow */}
-                      <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
+                      <ArrowRight size={12} />
                    </button>
                 </div>
              </div>
@@ -595,7 +539,7 @@ const App: React.FC = () => {
 
      // Classic default
      return (
-        <div className="flex justify-between items-center mb-4 mt-8 px-1 border-l-4 border-[#0ea5e9] pl-3">
+        <div className="flex justify-between items-center mb-4 mt-8 px-1 border-l-4 border-[#4f7cff] pl-3">
            <h2 className="text-lg font-bold text-slate-800">{title}</h2>
            <button className="text-xs text-slate-400 hover:text-blue-500 font-medium">{linkText}</button>
         </div>
@@ -607,38 +551,29 @@ const App: React.FC = () => {
   // 1. CLASSIC (WeChat Style)
   const renderClassicLayout = () => (
     <div className="animate-fade-in-down">
-       {/* 
-          CURSOR_FIX: Updated Header Gradient
-          - Replaced purple-heavy gradient with modern "Tech Blue" to "Sky Blue"
-          - More professional and lighter feel
-       */}
-       <div className="relative rounded-[28px] overflow-hidden p-8 text-center mb-8 transition-transform hover:scale-[1.01] duration-300 bg-gradient-to-br from-[#2563eb] to-[#0ea5e9] shadow-header-glow text-white">
+       <div className="relative rounded-[28px] overflow-hidden p-8 text-center mb-8 transition-transform hover:scale-[1.01] duration-300 bg-gradient-to-br from-[#5b80ff] to-[#9a8dff] shadow-header-glow text-white">
           <div className="absolute top-[-20px] right-[-20px] w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
           <div className="absolute bottom-[-20px] left-[-10px] w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
           <div className="relative z-10 flex flex-col items-center">
             <h1 className="text-2xl font-bold tracking-wide mb-3 drop-shadow-sm">{APP_TITLE}</h1>
-            <p className="text-sm mb-8 font-medium tracking-wide opacity-90 text-blue-50">智能推荐、一键查验</p>
-            <button onClick={() => handleQuickAction("新建行程")} className="px-8 py-3.5 rounded-full font-semibold active:scale-95 transition-all duration-200 w-48 bg-white text-[#2563eb] shadow-lg hover:shadow-xl hover:bg-blue-50">创建新行程</button>
+            <p className="text-sm mb-8 font-medium tracking-wide opacity-90 text-blue-100">智能推荐、一键查验</p>
+            <button onClick={() => handleQuickAction("新建行程")} className="px-8 py-3.5 rounded-full font-semibold active:scale-95 transition-all duration-200 w-48 bg-[#07c160] hover:bg-[#06ad56] text-white shadow-green-900/10">创建新行程</button>
           </div>
       </div>
       
       {/* Quick Actions */}
       <div className="grid grid-cols-4 gap-2 px-2 mb-8">
-        {/* 
-           CURSOR_FIX: Refined Quick Action Colors 
-           - Subtler backgrounds, stronger icon colors for better accessibility and cleaner look
-        */}
         {[
-          { label: '合作', icon: Handshake, bg: 'bg-[#fff7ed]', text: 'text-[#ea580c]' }, // Orange
-          { label: '加入', icon: Plus, bg: 'bg-[#f0fdf4]', text: 'text-[#16a34a]' },     // Green
-          { label: '新建', icon: PenLine, bg: 'bg-[#eff6ff]', text: 'text-[#2563eb]' },  // Blue
-          { label: '模板', icon: FileText, bg: 'bg-[#f8fafc]', text: 'text-[#64748b]' }, // Slate
+          { label: '合作', icon: Handshake, bg: 'bg-[#fff6e6]', text: 'text-[#d48806]' },
+          { label: '加入', icon: Plus, bg: 'bg-[#f3e8ff]', text: 'text-[#9333ea]' },
+          { label: '新建', icon: PenLine, bg: 'bg-[#e6f7ff]', text: 'text-[#409eff]' },
+          { label: '模板', icon: FileText, bg: 'bg-[#f4f4f5]', text: 'text-[#71717a]' },
         ].map((item, idx) => (
           <button key={idx} onClick={() => handleQuickAction(`打开${item.label}行程`)} className="flex flex-col items-center gap-2 group">
-            <div className={`w-14 h-14 rounded-[20px] flex items-center justify-center shadow-sm border border-transparent hover:border-slate-100 group-active:scale-95 transition-all duration-300 ${item.bg} ${item.text}`}>
+            <div className={`w-14 h-14 rounded-[20px] flex items-center justify-center shadow-sm group-active:scale-95 transition-all duration-300 ${item.bg} ${item.text}`}>
               <item.icon size={24} strokeWidth={2.5} />
             </div>
-            <span className="text-xs font-medium text-[#64748b] opacity-90">{item.label}</span>
+            <span className="text-xs font-medium text-[#606266] opacity-80">{item.label}</span>
           </button>
         ))}
       </div>
