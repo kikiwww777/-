@@ -235,10 +235,17 @@ const App: React.FC = () => {
     // 2. Color Classes Configuration (Backgrounds & Text)
     const colors = {
       classic: {
-        tourism: 'bg-emerald-50 text-emerald-600',
-        business: 'bg-blue-50 text-blue-600',
-        family: 'bg-orange-50 text-orange-600',
-        other: 'bg-violet-50 text-violet-600'
+        /* 
+           CURSOR_FIX: Optimized Classic Palette
+           - Tourism: Sky/Cyan (Fresh, Outdoors)
+           - Business: Royal Blue (Professional, Trust)
+           - Family: Rose/Pink (Warmth, Care) - Replaces heavy orange
+           - Other: Slate/Blue-Grey (Neutral, Sophisticated) - Replaces heavy purple
+        */
+        tourism: 'bg-[#e0f2fe] text-[#0284c7]', // Sky-100 / Sky-600
+        business: 'bg-[#eff6ff] text-[#2563eb]', // Blue-50 / Blue-600
+        family: 'bg-[#fff1f2] text-[#e11d48]',   // Rose-50 / Rose-600
+        other: 'bg-[#f8fafc] text-[#64748b]'      // Slate-50 / Slate-500
       },
       neo: {
         tourism: 'bg-[#ffdc00]', // Bright Yellow
@@ -287,29 +294,34 @@ const App: React.FC = () => {
 
     // 1. CLASSIC: Standard App UI (WeChat Style)
     if (layoutMode === 'classic') {
-      const statusColor = trip.status === '准备中' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500';
+      /* 
+         CURSOR_FIX: Optimized Status Colors for Classic Mode
+         - "Preparing": Blue-100 bg with Blue-700 text (Standard, Clean)
+         - "Done": Slate-100 bg with Slate-400 text (Low contrast, fades away)
+      */
+      const statusColor = trip.status === '准备中' ? 'bg-blue-50 text-blue-600 border border-blue-100' : 'bg-slate-100 text-slate-400 border border-transparent';
       
       return (
-        <div key={trip.id} className="bg-white rounded-[16px] p-4 mb-3 shadow-[0_1px_3px_rgba(0,0,0,0.02)] border border-gray-100 flex justify-between items-center active:bg-gray-50 transition-colors">
+        <div key={trip.id} className="bg-white rounded-[16px] p-4 mb-3 shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-slate-50 flex justify-between items-center active:bg-gray-50 transition-colors">
           <div className="flex gap-4 items-center">
              {/* Icon: Rounded Squircle */}
-             <div className={`w-12 h-12 rounded-[14px] flex items-center justify-center shrink-0 ${colorClass} ${trip.status === '已完成' ? 'opacity-50 grayscale' : ''}`}>
+             <div className={`w-12 h-12 rounded-[16px] flex items-center justify-center shrink-0 ${colorClass} ${trip.status === '已完成' ? 'opacity-50 grayscale' : ''}`}>
                <Icon size={22} />
              </div>
              <div>
                <div className="flex items-center gap-2 mb-1">
-                 <h3 className={`text-[15px] font-bold tracking-tight ${trip.status === '已完成' ? 'text-gray-400' : 'text-[#333]'}`}>{trip.title}</h3>
+                 <h3 className={`text-[15px] font-bold tracking-tight ${trip.status === '已完成' ? 'text-gray-400' : 'text-[#1e293b]'}`}>{trip.title}</h3>
                  {trip.isCoop && <span className="bg-indigo-50 text-indigo-600 px-1.5 py-[2px] rounded text-[10px] font-bold border border-indigo-100">协作</span>}
                </div>
                <div className="flex items-center gap-2">
                  {/* Status: Standard Pill Badge */}
-                 <span className={`px-2 py-[2px] rounded-[4px] text-[10px] font-medium ${statusColor}`}>{trip.status}</span>
-                 <span className="text-xs text-gray-400">{trip.date}</span>
+                 <span className={`px-2 py-[2px] rounded-[6px] text-[10px] font-medium ${statusColor}`}>{trip.status}</span>
+                 <span className="text-xs text-gray-400 font-medium">{trip.date}</span>
                </div>
              </div>
           </div>
           <button onClick={() => handleCheckTrip(trip.title)} className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${
-             trip.status === '已完成' ? 'bg-gray-50 text-gray-300' : 'bg-gray-50 text-gray-400 hover:bg-[#07c160] hover:text-white'
+             trip.status === '已完成' ? 'bg-gray-50 text-gray-300' : 'bg-blue-50 text-blue-500 hover:bg-blue-500 hover:text-white'
           }`}>
             <ArrowRight size={16} />
           </button>
@@ -583,7 +595,7 @@ const App: React.FC = () => {
 
      // Classic default
      return (
-        <div className="flex justify-between items-center mb-4 mt-8 px-1 border-l-4 border-[#4f7cff] pl-3">
+        <div className="flex justify-between items-center mb-4 mt-8 px-1 border-l-4 border-[#0ea5e9] pl-3">
            <h2 className="text-lg font-bold text-slate-800">{title}</h2>
            <button className="text-xs text-slate-400 hover:text-blue-500 font-medium">{linkText}</button>
         </div>
@@ -595,29 +607,38 @@ const App: React.FC = () => {
   // 1. CLASSIC (WeChat Style)
   const renderClassicLayout = () => (
     <div className="animate-fade-in-down">
-       <div className="relative rounded-[28px] overflow-hidden p-8 text-center mb-8 transition-transform hover:scale-[1.01] duration-300 bg-gradient-to-br from-[#5b80ff] to-[#9a8dff] shadow-header-glow text-white">
+       {/* 
+          CURSOR_FIX: Updated Header Gradient
+          - Replaced purple-heavy gradient with modern "Tech Blue" to "Sky Blue"
+          - More professional and lighter feel
+       */}
+       <div className="relative rounded-[28px] overflow-hidden p-8 text-center mb-8 transition-transform hover:scale-[1.01] duration-300 bg-gradient-to-br from-[#2563eb] to-[#0ea5e9] shadow-header-glow text-white">
           <div className="absolute top-[-20px] right-[-20px] w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
           <div className="absolute bottom-[-20px] left-[-10px] w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
           <div className="relative z-10 flex flex-col items-center">
             <h1 className="text-2xl font-bold tracking-wide mb-3 drop-shadow-sm">{APP_TITLE}</h1>
-            <p className="text-sm mb-8 font-medium tracking-wide opacity-90 text-blue-100">智能推荐、一键查验</p>
-            <button onClick={() => handleQuickAction("新建行程")} className="px-8 py-3.5 rounded-full font-semibold active:scale-95 transition-all duration-200 w-48 bg-[#07c160] hover:bg-[#06ad56] text-white shadow-green-900/10">创建新行程</button>
+            <p className="text-sm mb-8 font-medium tracking-wide opacity-90 text-blue-50">智能推荐、一键查验</p>
+            <button onClick={() => handleQuickAction("新建行程")} className="px-8 py-3.5 rounded-full font-semibold active:scale-95 transition-all duration-200 w-48 bg-white text-[#2563eb] shadow-lg hover:shadow-xl hover:bg-blue-50">创建新行程</button>
           </div>
       </div>
       
       {/* Quick Actions */}
       <div className="grid grid-cols-4 gap-2 px-2 mb-8">
+        {/* 
+           CURSOR_FIX: Refined Quick Action Colors 
+           - Subtler backgrounds, stronger icon colors for better accessibility and cleaner look
+        */}
         {[
-          { label: '合作', icon: Handshake, bg: 'bg-[#fff6e6]', text: 'text-[#d48806]' },
-          { label: '加入', icon: Plus, bg: 'bg-[#f3e8ff]', text: 'text-[#9333ea]' },
-          { label: '新建', icon: PenLine, bg: 'bg-[#e6f7ff]', text: 'text-[#409eff]' },
-          { label: '模板', icon: FileText, bg: 'bg-[#f4f4f5]', text: 'text-[#71717a]' },
+          { label: '合作', icon: Handshake, bg: 'bg-[#fff7ed]', text: 'text-[#ea580c]' }, // Orange
+          { label: '加入', icon: Plus, bg: 'bg-[#f0fdf4]', text: 'text-[#16a34a]' },     // Green
+          { label: '新建', icon: PenLine, bg: 'bg-[#eff6ff]', text: 'text-[#2563eb]' },  // Blue
+          { label: '模板', icon: FileText, bg: 'bg-[#f8fafc]', text: 'text-[#64748b]' }, // Slate
         ].map((item, idx) => (
           <button key={idx} onClick={() => handleQuickAction(`打开${item.label}行程`)} className="flex flex-col items-center gap-2 group">
-            <div className={`w-14 h-14 rounded-[20px] flex items-center justify-center shadow-sm group-active:scale-95 transition-all duration-300 ${item.bg} ${item.text}`}>
+            <div className={`w-14 h-14 rounded-[20px] flex items-center justify-center shadow-sm border border-transparent hover:border-slate-100 group-active:scale-95 transition-all duration-300 ${item.bg} ${item.text}`}>
               <item.icon size={24} strokeWidth={2.5} />
             </div>
-            <span className="text-xs font-medium text-[#606266] opacity-80">{item.label}</span>
+            <span className="text-xs font-medium text-[#64748b] opacity-90">{item.label}</span>
           </button>
         ))}
       </div>
