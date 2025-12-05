@@ -20,7 +20,8 @@ import {
   ChevronLeft, Clock, Trash2, Filter, Search, RotateCw,
   TrendingUp, CalendarCheck, MapPinned,
   QrCode, GripHorizontal, Sun, Moon, Cloud, Image as ImageIcon,
-  Flame, Baby, Aperture, Backpack, Palette, Rocket, Music, Utensils
+  Flame, Baby, Aperture, Backpack, Palette, Rocket, Music, Utensils,
+  ChevronRight, Check, ChevronDown, SlidersHorizontal, ArrowUpRight
 } from 'lucide-react';
 
 // --- 类型定义 & 模拟数据 ---
@@ -41,36 +42,55 @@ interface Trip {
   people: number;
   checkedItems: number;
   totalItems: number;
+  countdown: number; // Added countdown field
 }
 
 // 预设的演示数据
 const DEMO_TRIPS: Trip[] = [
   { 
     id: '1', 
-    title: '上海 · 陆家嘴会议', 
+    title: '上海 · 陆家嘴金融峰会', 
     location: '上海市·浦东新区', 
     date: '12月5日 - 6日', 
     status: '准备中',
     type: 'business',
-    image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=600',
+    image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=800',
     days: 2,
     people: 3,
     checkedItems: 5,
-    totalItems: 12
+    totalItems: 12,
+    countdown: 3
   },
   { 
     id: '2', 
-    title: '三亚 · 海边度假', 
+    title: '三亚 · 热带海滨度假', 
     location: '海南省·三亚市', 
     date: '12月15日 - 20日', 
     status: '准备中',
     type: 'tourism',
-    image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&q=80&w=600',
+    image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&q=80&w=800',
     days: 6,
     people: 2,
     checkedItems: 20,
-    totalItems: 20
+    totalItems: 20,
+    countdown: 12
   }
+];
+
+// 预设模板列表
+const TEMPLATE_OPTIONS = [
+    { id: 'custom', label: '【自定义】智能生成' },
+    { id: 'classic', label: '经典通用旅行模板' },
+    { id: 'business_short', label: '国内短途商务差旅' },
+    { id: 'business_long', label: '国际长途商务差旅' },
+    { id: 'city_walk', label: 'City Walk 城市漫步' },
+    { id: 'hiking', label: '户外徒步登山' },
+    { id: 'beach', label: '海滨度假休闲' },
+    { id: 'skiing', label: '滑雪运动装备' },
+    { id: 'camping', label: '露营野炊' },
+    { id: 'photography', label: '摄影采风' },
+    { id: 'baby', label: '亲子带娃出行' },
+    { id: 'pet', label: '宠物同行' }
 ];
 
 // --- 辅助组件 ---
@@ -81,13 +101,15 @@ const WeChatNavBar = ({
   layoutMode, 
   onBack, 
   showBack,
-  transparent = false
+  transparent = false,
+  darkMode = false
 }: { 
   title: string, 
   layoutMode: LayoutMode, 
   onBack?: () => void, 
   showBack?: boolean,
-  transparent?: boolean
+  transparent?: boolean,
+  darkMode?: boolean
 }) => {
   // 根据主题动态调整导航栏样式
   const bgStyle = transparent 
@@ -98,17 +120,28 @@ const WeChatNavBar = ({
       layoutMode === 'wanderlust' ? 'bg-[#F5F6F8]/90 backdrop-blur-xl' :
       'bg-[#f0f4f8]/90 backdrop-blur-md'; 
 
-  const textStyle = 
-    layoutMode === 'neo' ? 'text-black font-black italic' :
-    layoutMode === 'wanderlust' ? 'text-[#1F2937] font-bold tracking-tight' :
-    layoutMode === 'paper' ? 'text-gray-800 font-bold' :
-    layoutMode === 'zen' ? 'text-[#44403c] font-serif font-bold tracking-wide' :
-    'text-[#303133] font-semibold';
+  // Decide text color
+  let textColorClass = 'text-[#303133]';
+  if (darkMode) textColorClass = 'text-white';
+  else if (layoutMode === 'neo') textColorClass = 'text-black';
+  else if (layoutMode === 'paper') textColorClass = 'text-gray-800';
 
-  const capsuleStyle = 
-    layoutMode === 'neo' ? 'border-2 border-black bg-white text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]' :
-    layoutMode === 'wanderlust' ? 'border border-black/5 bg-white/60 backdrop-blur-md text-slate-900' :
-    'border border-gray-200 bg-white/60 backdrop-blur-md text-black';
+  const textStyle = `${textColorClass} ${layoutMode === 'zen' ? 'font-serif tracking-wide' : 'font-bold'}`;
+
+  // Capsule
+  let capsuleBorder = 'border-gray-200';
+  let capsuleBg = 'bg-white/60';
+  let capsuleIcon = 'text-black';
+
+  if (darkMode) {
+      capsuleBorder = 'border-white/20';
+      capsuleBg = 'bg-white/10 backdrop-blur-md';
+      capsuleIcon = 'text-white';
+  } else if (layoutMode === 'neo') {
+      capsuleBorder = 'border-black';
+      capsuleBg = 'bg-white';
+      capsuleIcon = 'text-black';
+  }
 
   return (
     <div className={`fixed top-0 left-0 right-0 z-[60] flex flex-col transition-all duration-300 ${bgStyle}`}>
@@ -120,8 +153,8 @@ const WeChatNavBar = ({
          {/* 模拟返回按钮 */}
          <div className="absolute left-2 flex items-center gap-1 cursor-pointer active:opacity-50 transition-opacity pl-2 pr-4 py-2" onClick={onBack}>
             {(showBack || (layoutMode !== 'wanderlust' && layoutMode !== 'classic')) && (
-               <div className={`w-8 h-8 rounded-full flex items-center justify-center ${transparent ? 'bg-black/20 backdrop-blur-lg text-white border border-white/10' : ''}`}>
-                   <ChevronLeft size={24} className={transparent ? 'text-white' : textStyle.split(' ')[0]} strokeWidth={2.5} />
+               <div className={`w-8 h-8 rounded-full flex items-center justify-center ${transparent && !darkMode ? 'bg-black/20 backdrop-blur-lg text-white border border-white/10' : ''}`}>
+                   <ChevronLeft size={24} className={textStyle} strokeWidth={2.5} />
                </div>
             )}
              {/* 仅在非创建模式且为 Wanderlust 主题时显示 "探索" */}
@@ -138,9 +171,9 @@ const WeChatNavBar = ({
          </div>
 
          {/* 微信胶囊按钮 (Capsule Button) */}
-         <div className={`absolute right-[7px] top-1/2 -translate-y-1/2 w-[87px] h-[32px] rounded-full flex items-center justify-evenly ${capsuleStyle}`}>
+         <div className={`absolute right-[7px] top-1/2 -translate-y-1/2 w-[87px] h-[32px] rounded-full border flex items-center justify-evenly ${capsuleBorder} ${capsuleBg} ${capsuleIcon} shadow-sm`}>
             <MoreHorizontal size={16} />
-            <div className={`w-[1px] h-[18px] ${layoutMode === 'wanderlust' ? 'bg-black/10' : 'bg-gray-200'}`}></div>
+            <div className={`w-[1px] h-[18px] ${darkMode ? 'bg-white/20' : 'bg-black/10'}`}></div>
             <div className="w-[16px] h-[16px] rounded-full border-2 border-current flex items-center justify-center">
               <div className="w-[4px] h-[4px] bg-current rounded-full"></div>
             </div>
@@ -168,9 +201,13 @@ const App: React.FC = () => {
   const [trips, setTrips] = useState<Trip[]>([]);
 
   // Selected Template State
-  const [selectedTemplate, setSelectedTemplate] = useState('');
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   const [selectedTripType, setSelectedTripType] = useState<string>('tourism');
   const [travelerCount, setTravelerCount] = useState(1);
+
+  // Template Sheet State
+  const [isTemplateSheetOpen, setIsTemplateSheetOpen] = useState(false);
+  const [tempSelectedTemplateId, setTempSelectedTemplateId] = useState<string>('');
 
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -256,6 +293,16 @@ const App: React.FC = () => {
     }, 100);
   };
 
+  const handleOpenTemplateSheet = () => {
+      setTempSelectedTemplateId(selectedTemplateId);
+      setIsTemplateSheetOpen(true);
+  };
+
+  const handleConfirmTemplate = () => {
+      setSelectedTemplateId(tempSelectedTemplateId);
+      setIsTemplateSheetOpen(false);
+  };
+
   // --- 视觉风格配置系统 ---
 
   const getTripVisuals = (type: TripType, layout: LayoutMode) => {
@@ -318,218 +365,229 @@ const App: React.FC = () => {
     </div>
   );
 
-  // --- 4. 创建行程页面 (The Ultimate Redesign) ---
+  // --- 4. 创建行程页面 (Bold Layout + Wanderlust Theme) ---
   const renderCreateTrip = () => {
     return (
-      <div className="animate-slide-up bg-[#F5F6F8] min-h-screen">
-         {/* Artistic Background - Soft Aurora */}
-         <div className="fixed top-0 left-0 right-0 h-[600px] bg-gradient-to-b from-[#E0E7FF] via-[#F0F9FF] to-[#F5F6F8] pointer-events-none z-0"></div>
+      <div className="animate-slide-up min-h-screen bg-[#F5F6F8] selection:bg-sky-200 selection:text-slate-900">
+         {/* 1. Dynamic Background - Light Aurora */}
+         <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+            <div className="absolute top-[-20%] left-[-20%] w-[80%] h-[80%] bg-blue-100/60 rounded-full blur-[120px] mix-blend-multiply animate-pulse"></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] bg-indigo-50/60 rounded-full blur-[100px] mix-blend-multiply"></div>
+            <div className="absolute top-[40%] left-[50%] -translate-x-1/2 w-[90%] h-[50%] bg-white/40 rounded-full blur-[150px] mix-blend-overlay"></div>
+         </div>
          
-         <div className="relative z-10 pb-32 pt-[100px] px-5">
+         <div className="relative z-10 pb-40 pt-[100px] px-6">
             
-            {/* 1. HERO QUESTION: Destination */}
-            <div className="mb-8">
-               <h1 className="text-3xl font-black text-slate-900 leading-tight mb-4">
-                  准备去哪儿<br/>
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-violet-600">探索世界？</span>
-               </h1>
-               
-               <div className="bg-white rounded-[32px] p-2 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.08)] ring-1 ring-black/5 flex items-center">
-                   <div className="w-14 h-14 rounded-full bg-slate-50 flex items-center justify-center text-slate-400">
-                      <Search size={24} strokeWidth={2.5} />
-                   </div>
+            {/* 1. HERO: Destination Input (Bold & Transparent) */}
+            <div className="mb-10">
+               <label className="block text-slate-400 text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <MapPin size={12} className="text-sky-500" /> 目的地 <span className="text-[10px] opacity-50">DESTINATION</span>
+               </label>
+               <div className="relative group">
                    <input 
                       type="text" 
-                      placeholder="输入城市或国家" 
-                      className="flex-1 h-14 bg-transparent text-xl font-bold text-slate-800 placeholder:text-slate-300 outline-none px-4"
+                      placeholder="准备去哪儿？" 
+                      className="w-full bg-transparent text-5xl font-black text-slate-900 placeholder:text-slate-200 outline-none border-b-2 border-slate-200 pb-4 focus:border-sky-500 transition-all duration-500"
                       autoFocus
                    />
+                   <div className="absolute right-0 bottom-6 opacity-0 group-focus-within:opacity-100 transition-opacity duration-500">
+                      <div className="bg-sky-500 text-white text-[10px] font-bold px-2 py-1 rounded-sm shadow-md">
+                         确认
+                      </div>
+                   </div>
                </div>
             </div>
 
-            {/* 2. TRIP CONFIG: Date Range & People */}
-            <div className="grid grid-cols-2 gap-4 mb-4">
-                {/* Start Date */}
-                <div className="bg-white rounded-[28px] p-5 shadow-[0_8px_30px_rgba(0,0,0,0.03)] active:scale-95 transition-transform cursor-pointer border border-transparent hover:border-blue-100 group">
-                   <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                      <CalendarDays size={20} strokeWidth={2.5} />
-                   </div>
-                   <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">出发日期</div>
-                   <div className="text-base font-black text-slate-800">12月 24日</div>
-                </div>
-
-                {/* End Date */}
-                 <div className="bg-white rounded-[28px] p-5 shadow-[0_8px_30px_rgba(0,0,0,0.03)] active:scale-95 transition-transform cursor-pointer border border-transparent hover:border-indigo-100 group">
-                   <div className="w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
-                      <CalendarCheck size={20} strokeWidth={2.5} />
-                   </div>
-                   <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">返回日期</div>
-                   <div className="text-base font-black text-slate-800">12月 30日</div>
-                </div>
-            </div>
-
-            {/* Travelers Card (Full Width) */}
-            <div className="bg-white rounded-[28px] p-5 shadow-[0_8px_30px_rgba(0,0,0,0.03)] border border-transparent hover:border-violet-100 group mb-8">
-                <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-violet-50 text-violet-600 flex items-center justify-center group-hover:scale-110 transition-transform">
-                            <Users size={20} strokeWidth={2.5} />
+            {/* 2. CONTROL DECK: Dates & Travelers (Merged White Panel) */}
+            <div className="mb-10">
+               <div className="bg-white/80 backdrop-blur-xl rounded-[24px] border border-white p-1 flex flex-col divide-y divide-slate-100 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.08)]">
+                  {/* Top Row: Dates */}
+                  <div className="flex divide-x divide-slate-100 h-20">
+                     <div className="flex-1 p-4 hover:bg-slate-50 transition-colors cursor-pointer group rounded-tl-[20px]">
+                        <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 group-hover:text-sky-500 transition-colors">出发 <span className="opacity-50 scale-75 inline-block origin-left">START</span></span>
+                        <div className="flex items-center gap-2 text-xl font-bold text-slate-800">
+                           <span>12.24</span>
+                           <ChevronDown size={14} className="text-slate-400" />
                         </div>
-                        <div className="flex flex-col">
-                            <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">同行人数</div>
-                            <div className="text-base font-black text-slate-800">出行伙伴</div>
+                     </div>
+                     <div className="flex-1 p-4 hover:bg-slate-50 transition-colors cursor-pointer group rounded-tr-[20px]">
+                        <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 group-hover:text-sky-500 transition-colors">返程 <span className="opacity-50 scale-75 inline-block origin-left">END</span></span>
+                        <div className="flex items-center gap-2 text-xl font-bold text-slate-800">
+                           <span>12.30</span>
+                           <ChevronDown size={14} className="text-slate-400" />
                         </div>
-                    </div>
-                    <div className="flex items-center gap-2 bg-slate-50 rounded-full px-3 py-1.5 border border-slate-100">
-                        <button onClick={() => setTravelerCount(Math.max(1, travelerCount - 1))} className="w-8 h-8 flex items-center justify-center rounded-full bg-white shadow-sm text-slate-600 active:scale-90 transition-transform hover:text-slate-900 font-bold">-</button>
-                        <span className="w-6 text-center text-sm font-black text-slate-800">{travelerCount}</span>
-                        <button onClick={() => setTravelerCount(travelerCount + 1)} className="w-8 h-8 flex items-center justify-center rounded-full bg-slate-900 text-white shadow-sm active:scale-90 transition-transform hover:bg-black font-bold">+</button>
-                    </div>
-                </div>
-            </div>
-
-            {/* 3. TRIP STYLE: Horizontal Pills */}
-            <div className="mb-8">
-               <div className="flex justify-between items-center mb-4 px-1">
-                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                     <Compass size={16} /> 出行类型
-                  </h3>
+                     </div>
+                  </div>
+                  {/* Bottom Row: Travelers */}
+                  <div className="p-4 flex justify-between items-center hover:bg-slate-50 transition-colors rounded-b-[20px]">
+                      <div>
+                         <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">同行伙伴 <span className="opacity-50 scale-75 inline-block origin-left">TRAVELERS</span></span>
+                         <span className="text-slate-800 font-medium text-sm">与谁同行</span>
+                      </div>
+                      <div className="flex items-center gap-3 bg-slate-100 rounded-full px-3 py-1.5 border border-slate-200">
+                          <button onClick={() => setTravelerCount(Math.max(1, travelerCount - 1))} className="w-6 h-6 rounded-full bg-white flex items-center justify-center hover:bg-slate-50 text-slate-600 shadow-sm">-</button>
+                          <span className="text-lg font-bold text-slate-900 w-4 text-center">{travelerCount}</span>
+                          <button onClick={() => setTravelerCount(travelerCount + 1)} className="w-6 h-6 rounded-full bg-white flex items-center justify-center hover:bg-slate-50 text-slate-600 shadow-sm">+</button>
+                      </div>
+                  </div>
                </div>
-               <div className="flex gap-3 overflow-x-auto pb-4 -mx-5 px-5 scrollbar-hide">
+            </div>
+
+            {/* 3. TRIP TYPE: Clean Pills */}
+            <div className="mb-10">
+               <label className="block text-slate-400 text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <Compass size={12} className="text-sky-500" /> 出行类型 <span className="text-[10px] opacity-50">MODE</span>
+               </label>
+               <div className="grid grid-cols-4 gap-2">
                   {[
-                     { id: 'tourism', label: '休闲度假', icon: Palmtree, color: 'text-orange-500', bg: 'bg-orange-50' },
-                     { id: 'business', label: '商务差旅', icon: Briefcase, color: 'text-blue-500', bg: 'bg-blue-50' },
-                     { id: 'family', label: '家庭亲子', icon: Baby, color: 'text-pink-500', bg: 'bg-pink-50' },
-                     { id: 'outdoor', label: '户外探险', icon: Mountain, color: 'text-emerald-500', bg: 'bg-emerald-50' },
-                     { id: 'foodie', label: '美食之旅', icon: Utensils, color: 'text-yellow-500', bg: 'bg-yellow-50' }
-                  ].map((type) => (
+                     { id: 'tourism', label: '旅游', icon: Palmtree },
+                     { id: 'business', label: '商务', icon: Briefcase },
+                     { id: 'family', label: '探亲', icon: House },
+                     { id: 'other', label: '其他', icon: MoreHorizontal }
+                  ].map((type) => {
+                     const isSelected = selectedTripType === type.id;
+                     return (
                      <button
                         key={type.id}
                         onClick={() => setSelectedTripType(type.id)}
-                        className={`flex-shrink-0 h-14 pl-2 pr-5 rounded-full flex items-center gap-3 border transition-all duration-300 ${
-                           selectedTripType === type.id 
-                           ? 'bg-slate-800 border-slate-800 text-white shadow-lg shadow-slate-900/20 scale-105' 
-                           : 'bg-white border-transparent text-slate-600 shadow-sm'
+                        className={`aspect-square rounded-2xl flex flex-col items-center justify-center gap-2 border transition-all duration-300 relative overflow-hidden group ${
+                           isSelected 
+                           ? 'bg-slate-900 border-slate-900 text-white shadow-xl shadow-slate-900/20' 
+                           : 'bg-white border-transparent text-slate-400 hover:bg-white hover:text-slate-600 shadow-sm hover:shadow-md'
                         }`}
                      >
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${selectedTripType === type.id ? 'bg-white/20 text-white' : `${type.bg} ${type.color}`}`}>
-                           <type.icon size={18} strokeWidth={2.5} />
-                        </div>
-                        <span className="text-sm font-bold whitespace-nowrap">{type.label}</span>
+                        <type.icon size={20} strokeWidth={2.5} className={`relative z-10 transition-transform duration-300 ${isSelected ? 'scale-110' : 'group-hover:scale-110'}`} />
+                        <span className="text-[10px] font-bold relative z-10">{type.label}</span>
                      </button>
-                  ))}
+                  )})}
                </div>
             </div>
 
-            {/* 4. TEMPLATES: Poster Flow (Renamed Title) */}
-            <div className="mb-8">
-               <div className="flex justify-between items-center mb-4 px-1">
-                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                     <LayoutTemplate size={16} /> 选择行程模板 <span className="text-xs font-normal text-slate-400">(可选)</span>
-                  </h3>
-               </div>
-               <div className="flex gap-4 overflow-x-auto pb-6 -mx-5 px-5 scrollbar-hide perspective-1000">
-                  {[
-                     { id: 'city', title: 'City Walk', sub: '城市漫步指南', bg: 'bg-gradient-to-br from-slate-800 to-slate-900', img: 'https://images.unsplash.com/photo-1449824913929-2b3a6e547270?auto=format&fit=crop&q=80&w=400' },
-                     { id: 'beach', title: 'Island Time', sub: '海岛躺平计划', bg: 'bg-gradient-to-br from-blue-400 to-cyan-300', img: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=400' },
-                     { id: 'camp', title: 'Glamping', sub: '精致露营', bg: 'bg-gradient-to-br from-green-700 to-emerald-600', img: 'https://images.unsplash.com/photo-1523987355523-c7b5b0dd90a7?auto=format&fit=crop&q=80&w=400' },
-                     { id: 'ski', title: 'Snow White', sub: '滑雪装备', bg: 'bg-gradient-to-br from-indigo-300 to-blue-200', img: 'https://images.unsplash.com/photo-1551698618-1dfe5d97d256?auto=format&fit=crop&q=80&w=400' }
-                  ].map((tpl) => (
-                     <div 
-                        key={tpl.id}
-                        onClick={() => setSelectedTemplate(tpl.id)}
-                        className={`relative flex-shrink-0 w-[160px] h-[220px] rounded-[24px] overflow-hidden cursor-pointer transition-all duration-300 group shadow-lg ${
-                           selectedTemplate === tpl.id ? 'ring-4 ring-offset-2 ring-slate-900 scale-105 shadow-xl' : 'scale-100'
-                        }`}
-                     >
-                        <img src={tpl.img} className="absolute inset-0 w-full h-full object-cover opacity-90 transition-transform duration-700 group-hover:scale-110" alt="" />
-                        <div className={`absolute inset-0 opacity-40 mix-blend-overlay ${tpl.bg}`}></div>
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent"></div>
-                        
-                        <div className="absolute top-3 right-3">
-                           <div className={`w-8 h-8 rounded-full backdrop-blur-md flex items-center justify-center border transition-colors ${
-                              selectedTemplate === tpl.id ? 'bg-slate-900 text-white border-transparent' : 'bg-white/20 text-white border-white/30'
-                           }`}>
-                              {selectedTemplate === tpl.id ? <CheckCircle2 size={16} /> : <Plus size={16} />}
-                           </div>
-                        </div>
-
-                        <div className="absolute bottom-4 left-4 right-4">
-                           <h4 className="text-white font-black text-xl leading-none mb-1">{tpl.title}</h4>
-                           <p className="text-white/80 text-[10px] font-bold uppercase tracking-wider">{tpl.sub}</p>
+            {/* 4. TEMPLATE: Ticket (Light) */}
+            <div className="mb-10">
+               <label className="block text-slate-400 text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <LayoutTemplate size={12} className="text-sky-500" /> 行程模板 <span className="text-[10px] opacity-50">TEMPLATE</span>
+               </label>
+               
+               <div 
+                  onClick={handleOpenTemplateSheet}
+                  className="relative h-20 bg-white border-l-4 border-sky-500 rounded-r-xl cursor-pointer hover:shadow-lg transition-all group overflow-hidden shadow-sm"
+               >  
+                  <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03]"></div>
+                  <div className="absolute inset-0 flex items-center justify-between px-6 z-10">
+                     <div>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">已选方案 <span className="opacity-50 scale-90 inline-block">SELECTED</span></span>
+                        <div className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                           {selectedTemplateId 
+                              ? TEMPLATE_OPTIONS.find(t => t.id === selectedTemplateId)?.label 
+                              : "选择行程模板"}
                         </div>
                      </div>
-                  ))}
-               </div>
-            </div>
-
-            {/* 5. DETAILS: Description & Special Needs (Separate Cards) */}
-            <div className="space-y-4 mb-8">
-               {/* Trip Description */}
-               <div className="bg-white rounded-[32px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.03)] border border-transparent hover:border-slate-100 transition-colors">
-                  <div className="flex items-center gap-3 mb-4">
-                     <div className="w-10 h-10 rounded-full bg-slate-50 text-slate-900 flex items-center justify-center">
-                        <FileText size={20} />
+                     <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100 group-hover:border-sky-200 transition-colors">
+                        <SlidersHorizontal size={18} className="text-sky-500" />
                      </div>
-                     <h3 className="font-bold text-slate-900">行程描述</h3>
                   </div>
+               </div>
+            </div>
+
+            {/* 5. INPUTS: Clean Textareas */}
+            <div className="grid grid-cols-1 gap-6 mb-10">
+               <div className="relative">
+                  <div className="absolute top-4 left-4 text-slate-400"><FileText size={18} /></div>
                   <textarea 
-                     className="w-full h-24 bg-slate-50 rounded-2xl p-4 text-sm font-bold text-slate-700 placeholder:text-slate-300 outline-none resize-none focus:ring-2 focus:ring-slate-100 transition-all"
-                     placeholder="简单描述一下这次行程的目的和计划..."
+                     className="w-full h-32 bg-white rounded-2xl p-4 pl-12 text-sm font-medium text-slate-700 placeholder:text-slate-300 outline-none resize-none border border-transparent shadow-sm focus:border-sky-200 focus:shadow-md transition-all"
+                     placeholder="行程描述：例如具体的会议时间、想去的景点..."
                   ></textarea>
                </div>
-
-               {/* Special Needs */}
-               <div className="bg-white rounded-[32px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.03)] border border-transparent hover:border-rose-100 transition-colors">
-                  <div className="flex items-center gap-3 mb-4">
-                     <div className="w-10 h-10 rounded-full bg-rose-50 text-rose-500 flex items-center justify-center">
-                        <Heart size={20} />
-                     </div>
-                     <h3 className="font-bold text-slate-900">特殊需求</h3>
-                  </div>
-                  <textarea 
-                     className="w-full h-24 bg-slate-50 rounded-2xl p-4 text-sm font-bold text-slate-700 placeholder:text-slate-300 outline-none resize-none focus:ring-2 focus:ring-rose-100 transition-all"
-                     placeholder="如：过敏体质、轮椅出行、宠物同行等特殊需求"
+               <div className="relative">
+                   <div className="absolute top-4 left-4 text-rose-400"><Heart size={18} /></div>
+                   <textarea 
+                     className="w-full h-32 bg-white rounded-2xl p-4 pl-12 text-sm font-medium text-slate-700 placeholder:text-slate-300 outline-none resize-none border border-transparent shadow-sm focus:border-rose-200 focus:shadow-md transition-all"
+                     placeholder="特殊需求：例如需要婴儿车、晕车药、过敏源..."
                   ></textarea>
                </div>
             </div>
 
-            {/* 6. Destination Image Placeholder */}
+            {/* 6. IMAGE PORTAL */}
              <div className="mb-24">
-               <div className="flex justify-between items-center mb-4 px-1">
-                  <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-                     <ImageIcon size={16} /> 目的城市图片
-                  </h3>
-               </div>
-               <div className="bg-white rounded-[32px] p-4 shadow-[0_8px_30px_rgba(0,0,0,0.03)] flex flex-col items-center justify-center h-48 border-2 border-dashed border-slate-100">
-                  <div className="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 mb-2">
-                     <MapPin size={24} />
+               <div className="w-full h-48 rounded-[32px] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center bg-white/40 relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-gradient-to-tr from-sky-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center mb-3 shadow-sm border border-slate-100 relative z-10">
+                     <ImageIcon size={24} className="text-slate-300 group-hover:text-sky-500 transition-colors" />
                   </div>
-                  <p className="text-xs font-bold text-slate-400">请先选择目的地以查看城市图片</p>
+                  <p className="text-xs font-bold text-slate-400 relative z-10">等待目的地确认 <span className="opacity-50 text-[10px]">PENDING...</span></p>
                </div>
             </div>
 
          </div>
 
-         {/* FLOAT ACTION BAR (Smart Island Style) */}
-         <div className="fixed bottom-8 left-5 right-5 z-50 animate-slide-up">
+         {/* FLOAT ACTION: The Launch Button */}
+         <div className="fixed bottom-8 left-6 right-6 z-40 animate-slide-up">
             <button 
                onClick={() => {
                   setIsCreating(false);
                   setActiveTab('home');
                   handleSendMessage("我创建了一个去东莞的商务行程，请帮我生成清单");
                }}
-               className="w-full h-[72px] bg-slate-900 text-white rounded-[28px] shadow-[0_20px_50px_-12px_rgba(15,23,42,0.5)] flex items-center justify-between px-2 pl-6 active:scale-[0.98] transition-all hover:shadow-[0_20px_50px_-12px_rgba(15,23,42,0.7)]"
+               className="w-full h-[72px] bg-slate-900 text-white rounded-[24px] shadow-[0_20px_50px_-12px_rgba(15,23,42,0.4)] flex items-center justify-between px-8 hover:scale-[1.02] active:scale-[0.98] transition-all font-black tracking-wide group hover:bg-black"
             >
                <div className="flex flex-col items-start">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">AI Ready</span>
-                  <span className="text-lg font-bold">生成专属清单</span>
+                  <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400">AI READY</span>
+                  <span className="text-xl">生成行程清单</span>
                </div>
-               <div className="w-[56px] h-[56px] rounded-[22px] bg-white/10 flex items-center justify-center">
-                  <ArrowRight size={24} />
-               </div>
+               <ArrowRight size={28} className="group-hover:translate-x-1 transition-transform text-sky-400" />
             </button>
          </div>
+
+         {/* --- TEMPLATE BOTTOM SHEET (Action Sheet Style) --- */}
+         {isTemplateSheetOpen && (
+             <>
+                 <div 
+                    className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] transition-opacity animate-fade-in"
+                    onClick={() => setIsTemplateSheetOpen(false)}
+                 ></div>
+                 
+                 <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 z-[101] rounded-t-[24px] overflow-hidden shadow-2xl animate-slide-up-fast text-slate-900">
+                     {/* Header */}
+                     <div className="flex justify-between items-center px-6 py-4 border-b border-slate-50 bg-white">
+                         <button 
+                            onClick={() => setIsTemplateSheetOpen(false)}
+                            className="text-slate-400 text-sm font-bold hover:text-slate-600 transition-colors"
+                         >
+                            取消
+                         </button>
+                         <span className="text-sm font-black uppercase tracking-wider text-slate-800">选择行程模板</span>
+                         <button 
+                            onClick={handleConfirmTemplate}
+                            className="text-sky-600 text-sm font-bold hover:text-sky-700 transition-colors"
+                         >
+                            确定
+                         </button>
+                     </div>
+
+                     {/* Picker List */}
+                     <div className="overflow-y-auto max-h-[40vh] py-4 bg-white">
+                        {TEMPLATE_OPTIONS.map((tpl) => (
+                           <div 
+                              key={tpl.id}
+                              onClick={() => setTempSelectedTemplateId(tpl.id)}
+                              className={`py-4 px-6 text-center text-sm transition-all cursor-pointer flex justify-center items-center relative ${
+                                  tempSelectedTemplateId === tpl.id 
+                                  ? 'text-sky-600 font-bold bg-sky-50 text-lg' 
+                                  : 'text-slate-500 font-medium hover:text-slate-800'
+                              }`}
+                           >
+                              {tpl.label}
+                              {tempSelectedTemplateId === tpl.id && (
+                                  <div className="absolute right-6 w-2 h-2 rounded-full bg-sky-500 shadow-sm"></div>
+                              )}
+                           </div>
+                        ))}
+                     </div>
+                     <div className="h-8 w-full bg-white"></div>
+                 </div>
+             </>
+         )}
 
       </div>
     );
@@ -727,34 +785,19 @@ const App: React.FC = () => {
                </button>
             </div>
 
-            {/* Stats Cards - Horizontal Scroll */}
-            <div className="flex gap-3 overflow-x-auto pb-4 -mx-5 px-5 scrollbar-hide">
-               <div className="min-w-[120px] bg-white p-4 rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col justify-between h-28">
-                  <div className="w-8 h-8 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center">
-                     <TrendingUp size={16} strokeWidth={2.5} />
-                  </div>
-                  <div>
-                     <div className="text-2xl font-black text-slate-800">85<span className="text-sm text-slate-400 font-bold">%</span></div>
-                     <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">准备就绪</div>
-                  </div>
+            {/* Stats Cards - Cleaner Grid Layout */}
+            <div className="grid grid-cols-3 gap-3">
+               <div className="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center justify-center h-24">
+                  <div className="text-2xl font-black text-slate-800 mb-1">85<span className="text-xs text-slate-400 font-bold">%</span></div>
+                  <div className="text-[9px] text-slate-400 font-bold uppercase tracking-wide">准备就绪</div>
                </div>
-               <div className="min-w-[120px] bg-white p-4 rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col justify-between h-28">
-                  <div className="w-8 h-8 rounded-full bg-violet-50 text-violet-600 flex items-center justify-center">
-                     <MapPinned size={16} strokeWidth={2.5} />
-                  </div>
-                  <div>
-                     <div className="text-2xl font-black text-slate-800">4</div>
-                     <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">即将出发</div>
-                  </div>
+               <div className="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center justify-center h-24">
+                  <div className="text-2xl font-black text-slate-800 mb-1">4</div>
+                  <div className="text-[9px] text-slate-400 font-bold uppercase tracking-wide">即将出发</div>
                </div>
-               <div className="min-w-[120px] bg-white p-4 rounded-2xl border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)] flex flex-col justify-between h-28">
-                  <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                     <CalendarCheck size={16} strokeWidth={2.5} />
-                  </div>
-                  <div>
-                     <div className="text-2xl font-black text-slate-800">12</div>
-                     <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">剩余天数</div>
-                  </div>
+               <div className="bg-white p-3 rounded-2xl border border-slate-100 shadow-sm flex flex-col items-center justify-center h-24">
+                  <div className="text-2xl font-black text-slate-800 mb-1">12</div>
+                  <div className="text-[9px] text-slate-400 font-bold uppercase tracking-wide">剩余天数</div>
                </div>
             </div>
          </div>
@@ -783,8 +826,8 @@ const App: React.FC = () => {
             </div>
          </div>
 
-         {/* Immersive Trip Cards (杂志风格大卡片) */}
-         <div className="space-y-8">
+         {/* Immersive Trip Cards (Refined Magazine V2 Style) */}
+         <div className="space-y-6">
             {trips.length > 0 ? (
                trips.map((trip) => {
                   const { Icon } = getTripVisuals(trip.type, layoutMode);
@@ -792,85 +835,81 @@ const App: React.FC = () => {
                   const isReady = trip.status === '准备中';
                   
                   return (
-                     <div key={trip.id} className="group relative bg-white rounded-[32px] p-2 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.08)] border border-slate-100 hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.12)] transition-all duration-500">
+                     <div key={trip.id} className="group flex flex-col bg-white rounded-[32px] shadow-[0_15px_30px_rgba(0,0,0,0.06)] border border-slate-100 overflow-hidden hover:shadow-[0_20px_40px_rgba(0,0,0,0.1)] transition-all duration-500 transform hover:-translate-y-1">
                         
-                        {/* 1. Immersive Image Area */}
-                        <div className="relative h-64 w-full rounded-[28px] overflow-hidden">
-                           <img src={trip.image} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="" />
-                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent opacity-90"></div>
+                        {/* 1. Clean Image Area (Top 60%) */}
+                        <div className="relative h-48 w-full overflow-hidden">
+                           <img src={trip.image} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" alt="" />
+                           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-80"></div>
                            
-                           {/* Status Badge (Glassmorphism) */}
+                           {/* Top Left Status */}
                            <div className="absolute top-4 left-4">
-                              <div className={`backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-bold border border-white/10 shadow-lg tracking-wide uppercase flex items-center gap-1.5 ${
-                                 isReady ? 'bg-sky-500/20 text-white' : 'bg-slate-800/40 text-slate-300'
+                              <div className={`backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-bold border border-white/20 shadow-lg tracking-wide uppercase flex items-center gap-1.5 ${
+                                 isReady ? 'bg-sky-500/90 text-white' : 'bg-slate-800/80 text-white'
                               }`}>
-                                 <span className={`w-1.5 h-1.5 rounded-full ${isReady ? 'bg-sky-400 animate-pulse' : 'bg-slate-400'}`}></span>
                                  {trip.status}
                               </div>
                            </div>
 
-                           {/* Title Overlay */}
-                           <div className="absolute bottom-0 left-0 w-full p-6">
-                              <div className="flex items-center gap-2 mb-2">
-                                  <Icon size={14} className="text-white/80" />
-                                  <span className="text-[10px] font-bold text-white/80 tracking-widest uppercase opacity-80">{tripTypeToChinese(trip.type)}之旅</span>
-                              </div>
-                              <h3 className="text-3xl font-black text-white leading-tight mb-2 shadow-sm">{trip.title}</h3>
-                              <div className="flex items-center gap-2 text-white/70 text-xs font-medium">
-                                 <MapPin size={12} /> {trip.location}
-                              </div>
+                           {/* Big Countdown Overlay (Visual Anchor) */}
+                           <div className="absolute bottom-4 left-5 text-white">
+                               <div className="flex items-baseline gap-1">
+                                  <span className="text-6xl font-black tracking-tighter leading-none shadow-black/20 drop-shadow-lg">{trip.countdown}</span>
+                                  <span className="text-sm font-bold opacity-80 uppercase tracking-widest">Days Left</span>
+                               </div>
+                               <div className="flex items-center gap-1.5 text-white/90 text-xs font-medium mt-1">
+                                   <MapPin size={12} className="text-sky-300" />
+                                   <span>{trip.location}</span>
+                               </div>
                            </div>
                         </div>
 
-                        {/* 2. Info & Action Area */}
-                        <div className="px-5 pt-5 pb-3">
-                           {/* Info Grid */}
-                           <div className="flex justify-between items-center mb-6">
-                              <div className="flex gap-6">
-                                 <div className="flex flex-col">
-                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">出发日期</span>
-                                    <span className="text-sm font-bold text-slate-700">{trip.date.split(' - ')[0]}</span>
-                                 </div>
-                                 <div className="flex flex-col">
-                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">行程天数</span>
-                                    <span className="text-sm font-bold text-slate-700">{trip.days} 天</span>
-                                 </div>
+                        {/* 2. Clean Info Panel (Bottom 40%) - No nested cards, just clean layout */}
+                        <div className="p-5 bg-white flex flex-col justify-between flex-1 relative">
+                           {/* Floating Type Icon */}
+                           <div className="absolute -top-6 right-6 w-12 h-12 bg-white rounded-2xl shadow-lg flex items-center justify-center text-sky-500 border border-slate-50 z-10">
+                              <Icon size={24} strokeWidth={2} />
+                           </div>
+
+                           <div className="mb-4">
+                              <div className="flex items-center gap-2 mb-1">
+                                 <span className="text-[10px] font-bold text-sky-600 bg-sky-50 px-2 py-0.5 rounded text-center">{tripTypeToChinese(trip.type)}</span>
                               </div>
-                              
-                              {/* Mini Avatars */}
-                              <div className="flex -space-x-2">
-                                 {[...Array(Math.min(3, trip.people))].map((_, i) => (
-                                    <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500 shadow-sm">
-                                       {String.fromCharCode(65+i)}
-                                    </div>
-                                 ))}
-                                 {trip.people > 3 && (
-                                    <div className="w-8 h-8 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-400 shadow-sm">
-                                       +{trip.people - 3}
-                                    </div>
-                                 )}
+                              <h3 className="text-xl font-black text-slate-900 leading-tight mb-2 truncate">{trip.title}</h3>
+                              <div className="flex items-center justify-between">
+                                  <div className="flex flex-col">
+                                     <span className="text-[10px] text-slate-400 font-bold uppercase">出发日期</span>
+                                     <span className="text-sm font-bold text-slate-700">{trip.date.split(' - ')[0]}</span>
+                                  </div>
+                                  <div className="flex flex-col pr-16">
+                                     <span className="text-[10px] text-slate-400 font-bold uppercase">行程天数</span>
+                                     <span className="text-sm font-bold text-slate-700">{trip.days} 天</span>
+                                  </div>
                               </div>
                            </div>
 
-                           {/* Integrated Progress Bar & Action */}
-                           <div className="bg-slate-50 rounded-2xl p-1.5 flex items-center gap-3 pr-2 border border-slate-100">
-                              <div className="flex-1 pl-3 py-1">
-                                 <div className="flex justify-between items-end mb-1.5">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">清单进度</span>
-                                    <span className="text-xs font-black text-sky-600">{progress}%</span>
+                           {/* Bottom Action Row */}
+                           <div className="flex items-center justify-between gap-4 pt-4 border-t border-slate-50">
+                              <div className="flex-1">
+                                 <div className="flex justify-between items-center mb-1.5">
+                                    <span className="text-[10px] font-bold text-slate-400">清单完成度</span>
+                                    <span className="text-xs font-black text-slate-900">{progress}%</span>
                                  </div>
-                                 <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
+                                 <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
                                     <div 
-                                       className="h-full bg-gradient-to-r from-sky-400 to-blue-500 rounded-full transition-all duration-1000 ease-out"
+                                       className={`h-full rounded-full transition-all duration-1000 ease-out ${
+                                          progress === 100 ? 'bg-emerald-500' : 'bg-slate-900'
+                                       }`}
                                        style={{ width: `${progress}%` }}
                                     ></div>
                                  </div>
                               </div>
+                              
                               <button 
                                  onClick={() => handleCheckTrip(trip.title)}
-                                 className="h-10 px-5 bg-slate-800 text-white rounded-xl text-xs font-bold shadow-lg shadow-slate-900/20 hover:bg-black transition-colors flex items-center gap-2 group-hover:scale-105 duration-300"
+                                 className="h-10 pl-5 pr-4 bg-slate-900 text-white rounded-xl text-xs font-bold shadow-lg shadow-slate-900/20 hover:bg-black transition-all flex items-center gap-2 group/btn"
                               >
-                                 查验 <ArrowRight size={14} className="opacity-70" />
+                                 立即查验 <ArrowRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
                               </button>
                            </div>
                         </div>
@@ -949,6 +988,7 @@ const App: React.FC = () => {
           showBack={isCreating}
           onBack={() => isCreating && setIsCreating(false)}
           transparent={isCreating}
+          darkMode={isCreating}
       />
 
       {/* Main Content */}
