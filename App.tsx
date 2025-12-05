@@ -8,10 +8,10 @@ import { ChatInput } from './components/ChatInput';
 import { 
   Handshake, Plus, PenLine, FileText, RotateCcw, 
   LayoutTemplate, Compass, Layout, 
-  MapPin, UserCircle, Home, Heart,
+  MapPin, CircleUser, House, Heart,
   Zap, Feather, Coffee, Camera, Mountain,
   Pen, Highlighter, Scissors, Sticker,
-  CheckCircle2, Calendar, Users, ArrowRight,
+  CheckCircle2, CalendarDays, Users, ArrowRight,
   Sparkles, Anchor, Plane, Briefcase, Map,
   Luggage, Globe2, Tent, Ticket, Landmark,
   ShoppingBag, Palmtree, Building2, Gift, 
@@ -41,7 +41,8 @@ interface Trip {
   totalItems: number;
 }
 
-const MOCK_TRIPS: Trip[] = [
+// 预设的演示数据
+const DEMO_TRIPS: Trip[] = [
   { 
     id: '1', 
     title: '上海 · 陆家嘴会议', 
@@ -67,33 +68,6 @@ const MOCK_TRIPS: Trip[] = [
     people: 2,
     checkedItems: 20,
     totalItems: 20
-  },
-  {
-    id: '3',
-    title: '回老家 · 团圆饭', 
-    location: '湖南省·长沙市',
-    date: '1月20日 - 28日',
-    status: '准备中',
-    type: 'family',
-    image: 'https://images.unsplash.com/photo-1516083692468-b769f36f9661?auto=format&fit=crop&q=80&w=600',
-    days: 9,
-    people: 5,
-    checkedItems: 0,
-    totalItems: 35
-  },
-  { 
-    id: '4', 
-    title: '未知目的地 · 探索', 
-    location: '云南省·香格里拉', 
-    date: '去年春季', 
-    status: '已完成', 
-    type: 'other',
-    isCoop: true,
-    image: 'https://images.unsplash.com/photo-1504609773096-104ff2c73ba4?auto=format&fit=crop&q=80&w=600',
-    days: 5,
-    people: 4,
-    checkedItems: 45,
-    totalItems: 45
   }
 ];
 
@@ -170,6 +144,9 @@ const App: React.FC = () => {
   // 行程列表页面的筛选状态
   const [searchQuery, setSearchQuery] = useState('');
 
+  // 行程数据状态 (用于 UI 调试切换)
+  const [trips, setTrips] = useState<Trip[]>([]);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -188,6 +165,10 @@ const App: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  const toggleDemoData = () => {
+    setTrips(prev => prev.length > 0 ? [] : DEMO_TRIPS);
+  };
 
   const handleSendMessage = useCallback(async (text: string) => {
     const userMessage: Message = {
@@ -255,7 +236,7 @@ const App: React.FC = () => {
     const icons = {
       tourism: { classic: Palmtree, neo: Camera, zen: Mountain, paper: Camera },
       business: { classic: BriefcaseBusiness, neo: Building2, zen: PenLine, paper: BriefcaseBusiness },
-      family: { classic: Home, neo: Heart, zen: Coffee, paper: Home },
+      family: { classic: House, neo: Heart, zen: Coffee, paper: House },
       other: { classic: Map, neo: Sparkles, zen: Compass, paper: Map }
     };
     const layoutKey = layout === 'wanderlust' ? 'classic' : layout;
@@ -263,38 +244,137 @@ const App: React.FC = () => {
     return { Icon: selectedIcon };
   };
 
+  // --- 3. 空状态组件 (New Premium Empty State) ---
+  const renderEmptyState = (type: 'home' | 'list') => (
+    <div className={`flex flex-col items-center justify-center ${type === 'home' ? 'py-12' : 'py-20'} animate-fade-in`}>
+        <div className="relative mb-6 group cursor-pointer" onClick={() => handleQuickAction("帮我规划一次旅行")}>
+            {/* Glow effect */}
+            <div className="absolute inset-0 bg-cyan-400/20 blur-2xl rounded-full group-hover:bg-cyan-400/30 transition-all duration-500"></div>
+            
+            {/* Icon Container */}
+            <div className="relative w-24 h-24 bg-white/80 backdrop-blur-xl rounded-full flex items-center justify-center shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-white group-hover:scale-105 transition-transform duration-300">
+                {type === 'home' ? (
+                     <MapPinned size={40} className="text-cyan-500 opacity-80" strokeWidth={1.5} />
+                ) : (
+                     <Luggage size={40} className="text-violet-500 opacity-80" strokeWidth={1.5} />
+                )}
+            </div>
+
+            {/* Floating Action Badge */}
+            <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-slate-900 rounded-full flex items-center justify-center text-white border-[3px] border-white shadow-lg group-hover:scale-110 transition-transform">
+                <Plus size={18} />
+            </div>
+        </div>
+        
+        <h3 className="text-lg font-bold text-slate-800 mb-2">
+            {type === 'home' ? '暂无近期行程' : '行程箱是空的'}
+        </h3>
+        <p className="text-slate-400 text-xs text-center max-w-[220px] leading-relaxed mb-8">
+            {type === 'home' 
+                ? '还没有出行计划？告诉 AI 你的目的地，一键生成专属清单。' 
+                : '记录每一次出发。无论是商务差旅还是休闲度假，都值得被认真规划。'}
+        </p>
+
+        <div className="flex flex-col gap-3 w-full max-w-[200px]">
+            <button 
+                onClick={() => handleQuickAction("帮我规划一次旅行")}
+                className="w-full h-11 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-xl text-xs font-bold shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+            >
+                <Sparkles size={14} /> 创建新行程
+            </button>
+            <button 
+                onClick={() => handleQuickAction("推荐一些热门旅行地")}
+                className="w-full h-11 bg-white text-slate-500 rounded-xl text-xs font-bold border border-slate-100 shadow-sm hover:bg-slate-50 hover:text-slate-700 transition-all flex items-center justify-center gap-2"
+            >
+                <Compass size={14} /> 浏览热门模板
+            </button>
+        </div>
+    </div>
+  );
+
   // --- 组件渲染器 ---
 
   // 1. 首页 - 探索模式布局
-  const renderWanderlustHome = () => (
+  const renderWanderlustHome = () => {
+    const hasTrips = trips.length > 0;
+
+    return (
     <div className="animate-fade-in">
       <div className="px-1 mb-6 mt-2">
-         <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-2">Hello, Traveler</h2>
+         <div className="flex justify-between items-center mb-2">
+            <h2 className="text-sm font-semibold text-slate-400 uppercase tracking-widest">Hello, Traveler</h2>
+            <button 
+              onClick={toggleDemoData}
+              className={`text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all ${
+                hasTrips 
+                  ? 'bg-red-50 text-red-400 border-red-100 hover:bg-red-100' 
+                  : 'bg-green-50 text-green-500 border-green-100 hover:bg-green-100'
+              }`}
+            >
+              {hasTrips ? '调试: 清空' : '调试: 加载'}
+            </button>
+         </div>
          <h1 className="text-4xl font-black text-slate-900 tracking-tight leading-[1.1]">
-            探索你的<br/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-blue-600">下一站旅程</span>
+            {hasTrips ? (
+               <>
+                 准备好<br/>
+                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-blue-600">出发了吗？</span>
+               </>
+            ) : (
+               <>
+                 探索你的<br/>
+                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-blue-600">下一站旅程</span>
+               </>
+            )}
          </h1>
       </div>
       
-      {/* Hero Card */}
-      <div 
-         onClick={() => handleQuickAction("我要去北京，帮我规划")}
-         className="relative w-full h-[280px] rounded-[32px] overflow-hidden mb-10 group cursor-pointer shadow-2xl shadow-cyan-900/10 ring-1 ring-slate-900/5 active:scale-[0.99] transition-all duration-500"
-      >
-        <img src="https://images.unsplash.com/photo-1508804185872-d7badad00f7d?auto=format&fit=crop&q=80&w=800" alt="Featured" className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/10 flex flex-col justify-end p-8 text-white">
-           <div className="flex items-center gap-2 mb-3">
-              <span className="bg-cyan-500 text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg">Featured</span>
-              <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold border border-white/20">5天后出发</span>
-           </div>
-           <h3 className="text-3xl font-bold leading-none mb-2">北京 · 文化溯源</h3>
-           <div className="flex items-center gap-2 text-sm text-gray-200 opacity-90">
-              <MapPin size={14} /> <span>北京, 中国</span>
-              <span className="w-1 h-1 rounded-full bg-white/50"></span>
-              <span>深度游</span>
-           </div>
-        </div>
-      </div>
+      {/* Dynamic Hero Card */}
+      {hasTrips ? (
+          // Case A: Has Trips - Show the first trip as "Next Trip"
+          <div 
+             onClick={() => handleCheckTrip(trips[0].title)}
+             className="relative w-full h-[280px] rounded-[32px] overflow-hidden mb-10 group cursor-pointer shadow-2xl shadow-cyan-900/10 ring-1 ring-slate-900/5 active:scale-[0.99] transition-all duration-500"
+          >
+            <img src={trips[0].image} alt="Next Trip" className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/10 flex flex-col justify-end p-8 text-white">
+               <div className="flex items-center gap-2 mb-3">
+                  <span className="bg-cyan-500 text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-lg">Next Trip</span>
+                  <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold border border-white/20 flex items-center gap-1">
+                     <Clock size={10} /> {trips[0].date.split(' - ')[0]} 出发
+                  </span>
+               </div>
+               <h3 className="text-3xl font-bold leading-none mb-2">{trips[0].title}</h3>
+               <div className="flex items-center gap-2 text-sm text-gray-200 opacity-90">
+                  <MapPin size={14} /> <span>{trips[0].location}</span>
+                  <span className="w-1 h-1 rounded-full bg-white/50"></span>
+                  <span>{trips[0].type}</span>
+               </div>
+            </div>
+          </div>
+      ) : (
+          // Case B: No Trips - Show Generic Inspiration
+          <div 
+             onClick={() => handleQuickAction("帮我推荐几个适合现在去旅行的地方")}
+             className="relative w-full h-[280px] rounded-[32px] overflow-hidden mb-10 group cursor-pointer shadow-2xl shadow-cyan-900/10 ring-1 ring-slate-900/5 active:scale-[0.99] transition-all duration-500"
+          >
+            <img src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&q=80&w=800" alt="Inspiration" className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 opacity-90" />
+            
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-slate-900/10 flex flex-col justify-end p-8 text-white">
+               <div className="flex items-center gap-2 mb-3">
+                  <span className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold border border-white/20 flex items-center gap-1 shadow-lg">
+                     <Sparkles size={10} /> 灵感推荐
+                  </span>
+               </div>
+               <h3 className="text-3xl font-bold leading-none mb-2">世界那么大</h3>
+               <p className="text-sm text-gray-200 opacity-90 mb-1 font-medium">不妨去看看？让 AI 为你寻找灵感。</p>
+            </div>
+             {/* Floating Button inside Hero */}
+             <div className="absolute bottom-8 right-8 w-10 h-10 bg-white text-slate-900 rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                <ArrowRight size={20} strokeWidth={2.5} />
+             </div>
+          </div>
+      )}
 
       <div className="mb-8">
         <h3 className="text-lg font-bold text-slate-800 mb-4 px-1">旅行工具箱</h3>
@@ -323,61 +403,69 @@ const App: React.FC = () => {
       </div>
 
       <div className="flex justify-between items-end mb-4 mt-8 px-1">
-        <h2 className="text-lg font-bold text-slate-800 leading-none tracking-tight">最近行程</h2>
-        <button onClick={() => setActiveTab('trips')} className="text-xs font-semibold text-cyan-600 hover:text-cyan-700 transition-colors flex items-center gap-0.5">
-           查看全部 <ChevronLeft size={12} className="rotate-180" />
-        </button>
+        <h2 className="text-lg font-bold text-slate-800 leading-none tracking-tight">
+             {hasTrips ? "最近行程" : "开始规划"}
+        </h2>
+        {hasTrips && (
+            <button onClick={() => setActiveTab('trips')} className="text-xs font-semibold text-cyan-600 hover:text-cyan-700 transition-colors flex items-center gap-0.5">
+            查看全部 <ChevronLeft size={12} className="rotate-180" />
+            </button>
+        )}
       </div>
 
-      {/* Large Cards for Home Page - Restored & Improved with Frosted Glass */}
-      {MOCK_TRIPS.slice(0, 2).map((trip) => {
-        const { Icon } = getTripVisuals(trip.type, layoutMode);
-        return (
-        <div key={trip.id} className="relative h-56 rounded-[28px] overflow-hidden mb-6 group shadow-xl shadow-slate-200/50 active:scale-[0.98] transition-all duration-300 ring-1 ring-black/5">
-          <img src={trip.image} className={`absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${trip.status === '已完成' ? 'grayscale' : ''}`} alt={trip.title} />
-          
-          {/* Base Gradient Overlay for general readability */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20"></div>
+      {/* Conditional Rendering for Trips / Empty State */}
+      {hasTrips ? (
+          trips.slice(0, 2).map((trip) => {
+            const { Icon } = getTripVisuals(trip.type, layoutMode);
+            return (
+            <div key={trip.id} className="relative h-56 rounded-[28px] overflow-hidden mb-6 group shadow-xl shadow-slate-200/50 active:scale-[0.98] transition-all duration-300 ring-1 ring-black/5">
+              <img src={trip.image} className={`absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${trip.status === '已完成' ? 'grayscale' : ''}`} alt={trip.title} />
+              
+              {/* Base Gradient Overlay for general readability */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20"></div>
 
-          {/* Frosted Glass Layer at the Bottom */}
-          {/* Using backdrop-blur-md with a gradient to create the "faintly see city" effect */}
-          <div className="absolute bottom-0 left-0 right-0 h-[45%] bg-gradient-to-t from-slate-900/90 via-slate-900/60 to-transparent backdrop-blur-[6px]"></div>
-          
-          <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
-             {trip.isCoop ? (
-                <div className="bg-white/10 backdrop-blur-md border border-white/20 text-white px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-sm">
-                   <Users size={12} /> <span>伙伴同行</span>
-                </div>
-             ) : <div></div>}
-             <div className={`backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-bold border border-white/20 shadow-sm tracking-wide uppercase ${
-                trip.status === '准备中' ? 'bg-cyan-500/80 text-white' : 'bg-black/60 text-white/70'
-             }`}>
-                {trip.status}
-             </div>
-          </div>
+              {/* Frosted Glass Layer at the Bottom */}
+              <div className="absolute bottom-0 left-0 right-0 h-[45%] bg-gradient-to-t from-slate-900/90 via-slate-900/60 to-transparent backdrop-blur-[6px]"></div>
+              
+              <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
+                 {trip.isCoop ? (
+                    <div className="bg-white/10 backdrop-blur-md border border-white/20 text-white px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-sm">
+                       <Users size={12} /> <span>伙伴同行</span>
+                    </div>
+                 ) : <div></div>}
+                 <div className={`backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-bold border border-white/20 shadow-sm tracking-wide uppercase ${
+                    trip.status === '准备中' ? 'bg-cyan-500/80 text-white' : 'bg-black/60 text-white/70'
+                 }`}>
+                    {trip.status}
+                 </div>
+              </div>
 
-          <div className="absolute bottom-0 left-0 right-0 p-6 flex justify-between items-end z-10">
-             <div className="flex-1 pr-4">
-               <div className="flex items-center gap-2 mb-1.5">
-                  <Icon size={14} className="text-cyan-300" />
-                  <span className="text-xs text-cyan-200 font-bold tracking-widest uppercase">{trip.type}</span>
-               </div>
-               <h3 className="text-2xl font-bold text-white leading-tight mb-1">{trip.title}</h3>
-               <div className="flex items-center gap-2 text-white/70 text-xs font-medium">
-                  <span className="flex items-center gap-1"><MapPin size={12} /> {trip.location}</span>
-                  <span className="w-1 h-1 rounded-full bg-white/40"></span>
-                  <span>{trip.date}</span>
-               </div>
-             </div>
-             <button onClick={() => handleCheckTrip(trip.title)} className="bg-white text-slate-900 w-11 h-11 rounded-full flex items-center justify-center hover:bg-cyan-50 transition-colors shadow-lg shadow-black/20 group-hover:scale-105 active:scale-95 duration-200">
-                <ArrowRight size={20} strokeWidth={2.5} />
-             </button>
-          </div>
-        </div>
-        );
-      })}
+              <div className="absolute bottom-0 left-0 right-0 p-6 flex justify-between items-end z-10">
+                 <div className="flex-1 pr-4">
+                   <div className="flex items-center gap-2 mb-1.5">
+                      <Icon size={14} className="text-cyan-300" />
+                      <span className="text-xs text-cyan-200 font-bold tracking-widest uppercase">{trip.type}</span>
+                   </div>
+                   <h3 className="text-2xl font-bold text-white leading-tight mb-1">{trip.title}</h3>
+                   <div className="flex items-center gap-2 text-white/70 text-xs font-medium">
+                      <span className="flex items-center gap-1"><MapPin size={12} /> {trip.location}</span>
+                      <span className="w-1 h-1 rounded-full bg-white/40"></span>
+                      <span>{trip.date}</span>
+                   </div>
+                 </div>
+                 <button onClick={() => handleCheckTrip(trip.title)} className="bg-white text-slate-900 w-11 h-11 rounded-full flex items-center justify-center hover:bg-cyan-50 transition-colors shadow-lg shadow-black/20 group-hover:scale-105 active:scale-95 duration-200">
+                    <ArrowRight size={20} strokeWidth={2.5} />
+                 </button>
+              </div>
+            </div>
+            );
+          })
+      ) : (
+          renderEmptyState('home')
+      )}
     </div>
-  );
+    );
+  };
 
   // 2. 行程页 - 高级杂志风格设计 (Redesigned)
   const renderTripsTab = () => {
@@ -454,97 +542,101 @@ const App: React.FC = () => {
 
          {/* Immersive Trip Cards (杂志风格大卡片) */}
          <div className="space-y-8">
-            {MOCK_TRIPS.map((trip) => {
-               const { Icon } = getTripVisuals(trip.type, layoutMode);
-               const progress = Math.round((trip.checkedItems / trip.totalItems) * 100);
-               const isReady = trip.status === '准备中';
-               
-               return (
-                  <div key={trip.id} className="group relative bg-white rounded-[32px] p-2 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.08)] border border-slate-100 hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.12)] transition-all duration-500">
-                     
-                     {/* 1. Immersive Image Area */}
-                     <div className="relative h-64 w-full rounded-[28px] overflow-hidden">
-                        <img src={trip.image} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent opacity-90"></div>
+            {trips.length > 0 ? (
+               trips.map((trip) => {
+                  const { Icon } = getTripVisuals(trip.type, layoutMode);
+                  const progress = Math.round((trip.checkedItems / trip.totalItems) * 100);
+                  const isReady = trip.status === '准备中';
+                  
+                  return (
+                     <div key={trip.id} className="group relative bg-white rounded-[32px] p-2 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.08)] border border-slate-100 hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.12)] transition-all duration-500">
                         
-                        {/* Status Badge (Glassmorphism) */}
-                        <div className="absolute top-4 left-4">
-                           <div className={`backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-bold border border-white/10 shadow-lg tracking-wide uppercase flex items-center gap-1.5 ${
-                              isReady ? 'bg-cyan-500/20 text-white' : 'bg-slate-800/40 text-slate-300'
-                           }`}>
-                              <span className={`w-1.5 h-1.5 rounded-full ${isReady ? 'bg-cyan-400 animate-pulse' : 'bg-slate-400'}`}></span>
-                              {trip.status}
-                           </div>
-                        </div>
-
-                        {/* Title Overlay */}
-                        <div className="absolute bottom-0 left-0 w-full p-6">
-                           <div className="flex items-center gap-2 mb-2">
-                               <Icon size={14} className="text-white/80" />
-                               <span className="text-[10px] font-bold text-white/80 tracking-widest uppercase opacity-80">{trip.type.toUpperCase()} TRIP</span>
-                           </div>
-                           <h3 className="text-3xl font-black text-white leading-tight mb-2 shadow-sm">{trip.title}</h3>
-                           <div className="flex items-center gap-2 text-white/70 text-xs font-medium">
-                              <MapPin size={12} /> {trip.location}
-                           </div>
-                        </div>
-                     </div>
-
-                     {/* 2. Info & Action Area */}
-                     <div className="px-5 pt-5 pb-3">
-                        {/* Info Grid */}
-                        <div className="flex justify-between items-center mb-6">
-                           <div className="flex gap-6">
-                              <div className="flex flex-col">
-                                 <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Date</span>
-                                 <span className="text-sm font-bold text-slate-700">{trip.date.split(' - ')[0]}</span>
-                              </div>
-                              <div className="flex flex-col">
-                                 <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Duration</span>
-                                 <span className="text-sm font-bold text-slate-700">{trip.days} Days</span>
-                              </div>
-                           </div>
+                        {/* 1. Immersive Image Area */}
+                        <div className="relative h-64 w-full rounded-[28px] overflow-hidden">
+                           <img src={trip.image} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="" />
+                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent opacity-90"></div>
                            
-                           {/* Mini Avatars */}
-                           <div className="flex -space-x-2">
-                              {[...Array(Math.min(3, trip.people))].map((_, i) => (
-                                 <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500 shadow-sm">
-                                    {String.fromCharCode(65+i)}
-                                 </div>
-                              ))}
-                              {trip.people > 3 && (
-                                 <div className="w-8 h-8 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-400 shadow-sm">
-                                    +{trip.people - 3}
-                                 </div>
-                              )}
+                           {/* Status Badge (Glassmorphism) */}
+                           <div className="absolute top-4 left-4">
+                              <div className={`backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-bold border border-white/10 shadow-lg tracking-wide uppercase flex items-center gap-1.5 ${
+                                 isReady ? 'bg-cyan-500/20 text-white' : 'bg-slate-800/40 text-slate-300'
+                              }`}>
+                                 <span className={`w-1.5 h-1.5 rounded-full ${isReady ? 'bg-cyan-400 animate-pulse' : 'bg-slate-400'}`}></span>
+                                 {trip.status}
+                              </div>
+                           </div>
+
+                           {/* Title Overlay */}
+                           <div className="absolute bottom-0 left-0 w-full p-6">
+                              <div className="flex items-center gap-2 mb-2">
+                                  <Icon size={14} className="text-white/80" />
+                                  <span className="text-[10px] font-bold text-white/80 tracking-widest uppercase opacity-80">{trip.type.toUpperCase()} TRIP</span>
+                              </div>
+                              <h3 className="text-3xl font-black text-white leading-tight mb-2 shadow-sm">{trip.title}</h3>
+                              <div className="flex items-center gap-2 text-white/70 text-xs font-medium">
+                                 <MapPin size={12} /> {trip.location}
+                              </div>
                            </div>
                         </div>
 
-                        {/* Integrated Progress Bar & Action */}
-                        <div className="bg-slate-50 rounded-2xl p-1.5 flex items-center gap-3 pr-2 border border-slate-100">
-                           <div className="flex-1 pl-3 py-1">
-                              <div className="flex justify-between items-end mb-1.5">
-                                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Checklist</span>
-                                 <span className="text-xs font-black text-cyan-600">{progress}%</span>
+                        {/* 2. Info & Action Area */}
+                        <div className="px-5 pt-5 pb-3">
+                           {/* Info Grid */}
+                           <div className="flex justify-between items-center mb-6">
+                              <div className="flex gap-6">
+                                 <div className="flex flex-col">
+                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Date</span>
+                                    <span className="text-sm font-bold text-slate-700">{trip.date.split(' - ')[0]}</span>
+                                 </div>
+                                 <div className="flex flex-col">
+                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Duration</span>
+                                    <span className="text-sm font-bold text-slate-700">{trip.days} Days</span>
+                                 </div>
                               </div>
-                              <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
-                                 <div 
-                                    className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full transition-all duration-1000 ease-out"
-                                    style={{ width: `${progress}%` }}
-                                 ></div>
+                              
+                              {/* Mini Avatars */}
+                              <div className="flex -space-x-2">
+                                 {[...Array(Math.min(3, trip.people))].map((_, i) => (
+                                    <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500 shadow-sm">
+                                       {String.fromCharCode(65+i)}
+                                    </div>
+                                 ))}
+                                 {trip.people > 3 && (
+                                    <div className="w-8 h-8 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-400 shadow-sm">
+                                       +{trip.people - 3}
+                                    </div>
+                                 )}
                               </div>
                            </div>
-                           <button 
-                              onClick={() => handleCheckTrip(trip.title)}
-                              className="h-10 px-5 bg-slate-900 text-white rounded-xl text-xs font-bold shadow-lg shadow-slate-900/20 hover:bg-black transition-colors flex items-center gap-2 group-hover:scale-105 duration-300"
-                           >
-                              查验 <ArrowRight size={14} className="opacity-70" />
-                           </button>
+
+                           {/* Integrated Progress Bar & Action */}
+                           <div className="bg-slate-50 rounded-2xl p-1.5 flex items-center gap-3 pr-2 border border-slate-100">
+                              <div className="flex-1 pl-3 py-1">
+                                 <div className="flex justify-between items-end mb-1.5">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">Checklist</span>
+                                    <span className="text-xs font-black text-cyan-600">{progress}%</span>
+                                 </div>
+                                 <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
+                                    <div 
+                                       className="h-full bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full transition-all duration-1000 ease-out"
+                                       style={{ width: `${progress}%` }}
+                                    ></div>
+                                 </div>
+                              </div>
+                              <button 
+                                 onClick={() => handleCheckTrip(trip.title)}
+                                 className="h-10 px-5 bg-slate-900 text-white rounded-xl text-xs font-bold shadow-lg shadow-slate-900/20 hover:bg-black transition-colors flex items-center gap-2 group-hover:scale-105 duration-300"
+                              >
+                                 查验 <ArrowRight size={14} className="opacity-70" />
+                              </button>
+                           </div>
                         </div>
                      </div>
-                  </div>
-               )
-            })}
+                  )
+               })
+            ) : (
+               renderEmptyState('list')
+            )}
          </div>
       </div>
     );
@@ -552,7 +644,7 @@ const App: React.FC = () => {
 
   const renderProfileTab = () => (
      <div className="flex flex-col items-center justify-center h-full pt-20 text-slate-400">
-        <UserCircle size={64} strokeWidth={1} className="mb-4 text-slate-200" />
+        <CircleUser size={64} strokeWidth={1} className="mb-4 text-slate-200" />
         <p className="text-sm font-medium">个人中心开发中...</p>
      </div>
   );
@@ -571,13 +663,13 @@ const App: React.FC = () => {
         return (
           <div className="fixed bottom-6 left-6 right-6 h-[72px] bg-white/80 backdrop-blur-xl border border-white/40 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.1)] rounded-[32px] flex justify-around items-center z-50 px-2 ring-1 ring-black/5">
              <button onClick={() => setActiveTab('home')} className={`flex flex-col items-center gap-1 transition-all p-2 rounded-2xl ${activeTab === 'home' ? 'text-cyan-600 bg-cyan-50' : 'text-slate-400 hover:text-slate-600'}`}>
-                <Home size={24} strokeWidth={2.5} />
+                <House size={24} strokeWidth={2.5} />
              </button>
              <button onClick={() => setActiveTab('trips')} className={`flex flex-col items-center gap-1 transition-all p-2 rounded-2xl ${activeTab === 'trips' ? 'text-cyan-600 bg-cyan-50' : 'text-slate-400 hover:text-slate-600'}`}>
-                <Calendar size={24} strokeWidth={2.5} />
+                <CalendarDays size={24} strokeWidth={2.5} />
              </button>
              <button onClick={() => setActiveTab('profile')} className={`flex flex-col items-center gap-1 transition-all p-2 rounded-2xl ${activeTab === 'profile' ? 'text-cyan-600 bg-cyan-50' : 'text-slate-400 hover:text-slate-600'}`}>
-                <UserCircle size={24} strokeWidth={2.5} />
+                <CircleUser size={24} strokeWidth={2.5} />
              </button>
           </div>
         );
@@ -624,13 +716,6 @@ const App: React.FC = () => {
         {activeTab === 'profile' && renderProfileTab()}
 
       </main>
-
-      {/* Input Area (Floating) - Only on Home Tab */}
-      <div className={`fixed bottom-[110px] left-0 right-0 z-40 transition-all duration-300 ${activeTab !== 'home' ? 'translate-y-[200px] opacity-0 pointer-events-none' : 'pointer-events-none'}`}>
-          <div className="pointer-events-auto">
-             <ChatInput onSend={handleSendMessage} isLoading={isLoading} theme={theme} />
-          </div>
-      </div>
 
       {/* Bottom Nav */}
       {renderBottomNav()}
