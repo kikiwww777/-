@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Message, Role, Theme } from '../types';
 import { User, AlertCircle, Sparkles, Leaf, Pen, Check, Square, CheckSquare, Circle, CheckCircle, Plane } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 interface ChatMessageProps {
   message: Message;
@@ -62,119 +63,145 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, theme }) => {
       }
     },
     wanderlust: {
-      userAvatar: 'bg-gradient-to-tr from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-500/30',
-      botAvatar: 'bg-white text-cyan-600 shadow-[0_8px_16px_rgba(0,0,0,0.08)] border border-white',
-      userBubble: 'bg-gradient-to-tr from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-500/20 rounded-2xl rounded-tr-sm backdrop-blur-md',
-      botBubble: 'bg-white/90 backdrop-blur-xl text-slate-700 shadow-[0_4px_20px_rgba(0,0,0,0.04)] rounded-2xl rounded-tl-sm border border-white/50',
-      time: 'text-slate-400 font-medium text-[10px] tracking-wider uppercase',
+      userAvatar: 'bg-gradient-to-tr from-sky-400 to-blue-500 text-white shadow-lg shadow-sky-500/30',
+      botAvatar: 'bg-white text-sky-600 border border-sky-100 shadow-[0_4px_12px_rgba(0,186,216,0.15)]',
+      userBubble: 'bg-gradient-to-tr from-sky-500 to-blue-600 text-white shadow-lg shadow-sky-500/20 rounded-2xl rounded-tr-none border border-white/10',
+      botBubble: 'bg-white/80 backdrop-blur-sm text-slate-700 border border-white shadow-[0_4px_20px_rgba(0,0,0,0.03)] rounded-2xl rounded-tl-none',
+      time: 'text-sky-900/40 font-medium',
       checkbox: {
-        unchecked: 'text-slate-300 hover:text-cyan-500',
-        checked: 'text-cyan-500',
-        textChecked: 'line-through text-slate-400 decoration-cyan-500/30'
+        unchecked: 'text-sky-200 hover:text-sky-500',
+        checked: 'text-sky-500',
+        textChecked: 'line-through text-slate-400 decoration-sky-300'
       }
     }
   };
 
   const currentStyle = themeStyles[theme];
 
-  const getIcon = () => {
-     if (isUser) return <User size={18} />;
-     if (message.isError) return <AlertCircle size={18} />;
-     if (theme === 'zen') return <Leaf size={18} />;
-     if (theme === 'paper') return <Pen size={16} />;
-     if (theme === 'wanderlust') return <Plane size={18} />;
-     return <Sparkles size={18} />;
+  const handleCheck = (index: number) => {
+    setCheckedIndices(prev => {
+      const next = new Set(prev);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
+      return next;
+    });
   };
 
-  const toggleCheck = (idx: number) => {
-    const newSet = new Set(checkedIndices);
-    if (newSet.has(idx)) {
-      newSet.delete(idx);
-    } else {
-      newSet.add(idx);
+  // Custom renderer for lists to handle checkboxes
+  const components = {
+    li: ({ children, ...props }: any) => {
+      // Check if this list item starts with a checkbox pattern roughly
+      // We will rely on simple index-based tracking for demo purposes in ReactMarkdown
+      // However, ReactMarkdown doesn't easily expose index in a stable way for interactivity without plugins.
+      // For a robust checklist, we'd parse the text manually. 
+      // HERE, we will assume standard markdown list items.
+      
+      // If the child is text that looks like a checklist item from Gemini:
+      return (
+        <li className="flex items-start gap-2 mb-2 leading-relaxed" {...props}>
+          <span className="mt-1.5 block w-1.5 h-1.5 rounded-full bg-current opacity-40 shrink-0" />
+          <span>{children}</span>
+        </li>
+      );
     }
-    setCheckedIndices(newSet);
   };
 
-  // Improved markdown rendering specifically for checklists
-  const renderMessageContent = (text: string) => {
-    // If it's a user message, just return text
-    if (isUser) return text;
-
-    return text.split('\n').map((line, idx) => {
-      // Check for markdown checkbox pattern "- [ ] " or "- [x] "
-      const checkboxMatch = line.match(/^-\s\[([ x])\]\s(.*)/);
-
+  // Simple parser to make checkboxes interactive if the model returns markdown checklists
+  const renderContent = () => {
+    // If the message contains markdown checkboxes like "- [ ] item" or "- [x] item"
+    const lines = message.text.split('\n');
+    return lines.map((line, idx) => {
+      // Match standard markdown checkbox
+      const checkboxMatch = line.match(/^(\s*)-\s*\[([ x])\]\s*(.*)/);
+      
       if (checkboxMatch) {
-        const isChecked = checkedIndices.has(idx) || checkboxMatch[1] === 'x';
-        const content = checkboxMatch[2];
-
-        // Choose icon based on theme
-        const CheckIcon = theme === 'neo' ? Square : theme === 'zen' ? Circle : theme === 'paper' ? Square : Square;
-        const CheckedIcon = theme === 'neo' ? CheckSquare : theme === 'zen' ? CheckCircle : theme === 'paper' ? CheckSquare : CheckSquare;
-        const IconComponent = isChecked ? CheckedIcon : CheckIcon;
+        const isChecked = checkedIndices.has(idx) || checkboxMatch[2].toLowerCase() === 'x';
+        const content = checkboxMatch[3];
+        const indent = checkboxMatch[1].length;
 
         return (
           <div 
             key={idx} 
-            className="flex items-start gap-2.5 py-1.5 cursor-pointer group"
-            onClick={() => toggleCheck(idx)}
+            className={`flex items-start gap-3 py-1.5 group cursor-pointer transition-all duration-300 ${indent > 0 ? 'ml-6' : ''}`}
+            onClick={() => !isUser && handleCheck(idx)}
           >
-            <div className={`mt-0.5 transition-colors ${isChecked ? currentStyle.checkbox.checked : currentStyle.checkbox.unchecked}`}>
-              <IconComponent size={theme === 'neo' ? 20 : 18} strokeWidth={theme === 'neo' ? 2.5 : 2} />
-            </div>
-            <span className={`transition-all duration-300 ${isChecked ? currentStyle.checkbox.textChecked : ''}`}>
-              {content}
-            </span>
+             <div className={`mt-0.5 shrink-0 transition-all duration-300 ${isChecked ? currentStyle.checkbox.checked : currentStyle.checkbox.unchecked} group-hover:scale-110`}>
+                {isChecked ? (
+                   theme === 'neo' || theme === 'paper' ? <CheckSquare size={18} strokeWidth={2.5} /> : <CheckCircle size={18} strokeWidth={2.5} />
+                ) : (
+                   theme === 'neo' || theme === 'paper' ? <Square size={18} strokeWidth={2} /> : <Circle size={18} strokeWidth={2} />
+                )}
+             </div>
+             <span className={`transition-all duration-300 ${isChecked ? currentStyle.checkbox.textChecked : ''}`}>
+               {content}
+             </span>
           </div>
         );
       }
-      
-      // Regular text formatting (simple bold/italic support)
-      // Note: For a full markdown parser we would need a library, but this covers basic bolding often used by Gemini
-      const parts = line.split(/(\*\*.*?\*\*)/g);
-      return (
-        <div key={idx} className={`${line.trim() === '' ? 'h-2' : 'min-h-[1.5em]'}`}>
-          {parts.map((part, pIdx) => {
-             if (part.startsWith('**') && part.endsWith('**')) {
-               return <strong key={pIdx} className={theme === 'neo' ? 'font-black' : 'font-bold'}>{part.slice(2, -2)}</strong>;
-             }
-             return <span key={pIdx}>{part}</span>;
-          })}
-        </div>
-      );
+
+      // Headers styling
+      if (line.startsWith('### ')) {
+         return <h3 key={idx} className="text-sm font-bold mt-4 mb-2 uppercase tracking-wider opacity-80 flex items-center gap-2">
+            {theme === 'wanderlust' && <Sparkles size={12} />}
+            {line.replace('### ', '')}
+         </h3>;
+      }
+      if (line.startsWith('**') && line.endsWith('**')) {
+        return <strong key={idx} className="block mt-4 mb-2 font-bold">{line.replace(/\*\*/g, '')}</strong>;
+      }
+
+      // Empty lines
+      if (!line.trim()) return <div key={idx} className="h-2" />;
+
+      // Regular text
+      return <p key={idx} className="mb-1 leading-relaxed whitespace-pre-wrap">{line}</p>;
     });
   };
 
   return (
-    <div className={`flex w-full mb-6 ${isUser ? 'justify-end' : 'justify-start'}`}>
-      <div className={`flex max-w-[90%] md:max-w-[80%] ${isUser ? 'flex-row-reverse' : 'flex-row'} gap-3`}>
+    <div className={`flex w-full mb-6 animate-slide-up ${isUser ? 'justify-end' : 'justify-start'}`}>
+      
+      {/* Avatar (Left for Bot) */}
+      {!isUser && (
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 shrink-0 select-none ${currentStyle.botAvatar}`}>
+           {theme === 'wanderlust' ? <Sparkles size={16} /> : <Sparkles size={16} />}
+        </div>
+      )}
+
+      <div className={`max-w-[85%] flex flex-col ${isUser ? 'items-end' : 'items-start'}`}>
         
-        {/* Avatar */}
-        <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-colors duration-300 ${
-          theme === 'neo' ? 'rounded-none' : '' 
-        } ${
-          isUser 
-            ? currentStyle.userAvatar 
-            : message.isError 
-              ? 'bg-red-100 text-red-600' 
-              : currentStyle.botAvatar
-        }`}>
-          {getIcon()}
+        {/* Name & Time */}
+        <div className={`flex items-center gap-2 mb-1.5 px-1 ${currentStyle.time} text-[10px]`}>
+           <span>{isUser ? '我' : 'AI 助手'}</span>
+           <span>•</span>
+           <span>
+             {new Date(message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+           </span>
         </div>
 
         {/* Bubble */}
-        <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} max-w-full`}>
-          <div className={`px-5 py-3.5 text-sm md:text-base leading-relaxed transition-all duration-300 ${
-             currentStyle.userBubble || currentStyle.botBubble
-          } ${isUser && theme !== 'neo' ? 'rounded-tr-none' : ''} ${!isUser && theme !== 'neo' ? 'rounded-tl-none' : ''} ${!isUser ? 'w-full' : ''}`}>
-            {renderMessageContent(message.text)}
-          </div>
-          <span className={`text-xs mt-1.5 px-1 font-medium ${currentStyle.time}`}>
-            {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          </span>
+        <div className={`px-5 py-3.5 relative group transition-all duration-300 ${isUser ? currentStyle.userBubble : currentStyle.botBubble}`}>
+           {message.isError && (
+              <div className="flex items-center gap-2 text-red-500 mb-2 font-bold">
+                 <AlertCircle size={16} />
+                 <span>出错了</span>
+              </div>
+           )}
+           <div className="text-sm">
+              {renderContent()}
+           </div>
         </div>
       </div>
+
+      {/* Avatar (Right for User) */}
+      {isUser && (
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center ml-3 shrink-0 select-none ${currentStyle.userAvatar}`}>
+           <User size={16} />
+        </div>
+      )}
     </div>
   );
 };

@@ -43,10 +43,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSend, isLoading, theme }
     },
     wanderlust: {
       container: 'pb-4 pt-2 px-6',
-      wrapper: 'bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.1)] rounded-full focus-within:bg-white focus-within:shadow-[0_8px_40px_rgba(0,180,216,0.15)] focus-within:border-cyan-100 ring-1 ring-black/5',
-      icon: 'text-cyan-600',
+      wrapper: 'bg-white/80 backdrop-blur-xl border border-white/50 shadow-[0_8px_32px_rgba(0,0,0,0.1)] rounded-full focus-within:bg-white focus-within:shadow-[0_8px_40px_rgba(0,180,216,0.15)] focus-within:border-sky-100 ring-1 ring-black/5',
+      icon: 'text-sky-600',
       input: 'text-slate-800 placeholder:text-slate-400 font-medium',
-      button: 'bg-gradient-to-tr from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30 rounded-full hover:scale-105 active:scale-95'
+      button: 'bg-gradient-to-tr from-sky-500 to-blue-500 text-white shadow-lg shadow-sky-500/30 rounded-full hover:scale-105 active:scale-95'
     }
   };
 
