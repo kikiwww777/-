@@ -1108,119 +1108,125 @@ const App: React.FC = () => {
                   const isUrgent = trip.countdown <= 1 && isReady;
                   const isNear = trip.countdown <= 7 && trip.countdown > 1 && progress < 100 && isReady;
 
+                  // Dynamic Wrapper Classes for Gradient Border (The "Aura")
+                  const wrapperClasses = isUrgent
+                     ? "p-[2px] bg-gradient-to-r from-rose-400 via-orange-400 to-rose-400 rounded-[34px] shadow-[0_8px_30px_rgba(244,63,94,0.25)]"
+                     : isNear
+                     ? "p-[2px] bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-400 rounded-[34px] shadow-[0_8px_30px_rgba(251,191,36,0.25)]"
+                     : "p-[1px] bg-slate-100 rounded-[33px] shadow-[0_20px_40px_-12px_rgba(0,0,0,0.08)]";
+
                   return (
-                     <div key={trip.id} className={`group relative bg-white rounded-[32px] p-2 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.08)] border hover:shadow-[0_25px_50px_-12px_rgba(0,0,0,0.12)] transition-all duration-500 ${
-                        isUrgent ? 'border-rose-400 shadow-rose-100' : 
-                        isNear ? 'border-amber-400 shadow-amber-100' : 
-                        'border-slate-100'
-                     }`}>
-                        
-                        {/* 1. Immersive Image Area */}
-                        <div className="relative h-64 w-full rounded-[28px] overflow-hidden">
-                           <img src={trip.image} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="" />
-                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent opacity-90"></div>
+                     <div key={trip.id} className={`group relative transition-all duration-500 hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.15)] ${wrapperClasses}`}>
+                        {/* Inner Content Card */}
+                        <div className="bg-white rounded-[32px] p-2 h-full w-full relative overflow-hidden">
                            
-                           {/* Status Badge & Coop Badge container */}
-                           <div className="absolute top-4 left-4 flex flex-col gap-2 items-start">
-                              <div className={`backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-bold border border-white/10 shadow-lg tracking-wide uppercase flex items-center gap-1.5 ${
-                                 isReady ? 'bg-sky-500/20 text-white' : 'bg-slate-800/40 text-slate-300'
-                              }`}>
-                                 <span className={`w-1.5 h-1.5 rounded-full ${isReady ? 'bg-sky-400 animate-pulse' : 'bg-slate-400'}`}></span>
-                                 {trip.status}
-                              </div>
-                              {trip.isCoop && (
-                                  <div className="backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-bold border border-white/10 shadow-lg tracking-wide uppercase flex items-center gap-1.5 bg-indigo-500/80 text-white animate-fade-in">
-                                      <Users size={12} /> <span>多人协作</span>
-                                  </div>
-                              )}
-                           </div>
-                           
-                           {/* Action Container Top Right (Reminder + Delete) */}
-                           <div className="absolute top-4 right-4 flex items-center gap-2 z-20">
-                              {/* Smart Reminder Badge */}
-                              {(isUrgent || isNear) && (
-                                <div className={`backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-bold border shadow-lg tracking-wide uppercase flex items-center gap-1.5 ${
-                                    isUrgent 
-                                    ? 'bg-rose-500 text-white border-rose-400' 
-                                    : 'bg-amber-500 text-white border-amber-400'
-                                }`}>
-                                   {isUrgent ? <Flame size={12} fill="currentColor" /> : <Clock size={12} />}
-                                   <span>{isUrgent ? '仅剩 1 天' : `还有 ${trip.countdown} 天出发`}</span>
-                                </div>
-                              )}
-
-                              {/* Delete Button */}
-                              <button
-                                 onClick={(e) => handleDeleteTrip(e, trip.id)}
-                                 className="w-9 h-9 rounded-full bg-black/20 hover:bg-red-500/90 backdrop-blur-md flex items-center justify-center text-white border border-white/10 transition-all active:scale-95 group/btn"
-                              >
-                                 <Trash2 size={16} className="opacity-80 group-hover/btn:opacity-100" />
-                              </button>
-                           </div>
-
-                           {/* Title Overlay */}
-                           <div className="absolute bottom-0 left-0 w-full p-6">
-                              <div className="flex items-center gap-2 mb-2">
-                                  <Icon size={14} className="text-white/80" />
-                                  <span className="text-[10px] font-bold text-white/80 tracking-widest uppercase opacity-80">{tripTypeToChinese(trip.type)}之旅</span>
-                              </div>
-                              <h3 className="text-3xl font-black text-white leading-tight mb-2 shadow-sm">{trip.title}</h3>
-                              <div className="flex items-center gap-2 text-white/70 text-xs font-medium">
-                                 <MapPin size={12} /> {trip.location}
-                              </div>
-                           </div>
-                        </div>
-
-                        {/* 2. Info & Action Area */}
-                        <div className="px-5 pt-5 pb-3">
-                           {/* Info Grid */}
-                           <div className="flex justify-between items-center mb-6">
-                              <div className="flex gap-6">
-                                 <div className="flex flex-col">
-                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">出发日期</span>
-                                    <span className="text-sm font-bold text-slate-700">{trip.date.split(' - ')[0]}</span>
-                                 </div>
-                                 <div className="flex flex-col">
-                                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">行程天数</span>
-                                    <span className="text-sm font-bold text-slate-700">{trip.days} 天</span>
-                                 </div>
-                              </div>
+                           {/* 1. Immersive Image Area */}
+                           <div className="relative h-64 w-full rounded-[28px] overflow-hidden">
+                              <img src={trip.image} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" alt="" />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent opacity-90"></div>
                               
-                              {/* Mini Avatars */}
-                              <div className="flex -space-x-2">
-                                 {[...Array(Math.min(3, trip.people))].map((_, i) => (
-                                    <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500 shadow-sm">
-                                       {String.fromCharCode(65+i)}
-                                    </div>
-                                 ))}
-                                 {trip.people > 3 && (
-                                    <div className="w-8 h-8 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-400 shadow-sm">
-                                       +{trip.people - 3}
-                                    </div>
+                              {/* Status Badge & Coop Badge container */}
+                              <div className="absolute top-4 left-4 flex flex-col gap-2 items-start">
+                                 <div className={`backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-bold border border-white/10 shadow-lg tracking-wide uppercase flex items-center gap-1.5 ${
+                                    isReady ? 'bg-sky-500/20 text-white' : 'bg-slate-800/40 text-slate-300'
+                                 }`}>
+                                    <span className={`w-1.5 h-1.5 rounded-full ${isReady ? 'bg-sky-400 animate-pulse' : 'bg-slate-400'}`}></span>
+                                    {trip.status}
+                                 </div>
+                                 {trip.isCoop && (
+                                     <div className="backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-bold border border-white/10 shadow-lg tracking-wide uppercase flex items-center gap-1.5 bg-indigo-500/80 text-white animate-fade-in">
+                                         <Users size={12} /> <span>多人协作</span>
+                                     </div>
                                  )}
                               </div>
-                           </div>
+                              
+                              {/* Action Container Top Right (Reminder + Delete) */}
+                              <div className="absolute top-4 right-4 flex items-center gap-2 z-20">
+                                 {/* Smart Reminder Badge - No Pulsing, Solid High Contrast */}
+                                 {(isUrgent || isNear) && (
+                                   <div className={`backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] font-bold border shadow-xl tracking-wide uppercase flex items-center gap-1.5 ${
+                                       isUrgent 
+                                       ? 'bg-rose-500 text-white border-rose-400' 
+                                       : 'bg-amber-500 text-white border-amber-400'
+                                   }`}>
+                                      {isUrgent ? <Flame size={12} fill="currentColor" /> : <Clock size={12} />}
+                                      <span>{isUrgent ? '仅剩 1 天' : `还有 ${trip.countdown} 天出发`}</span>
+                                   </div>
+                                 )}
 
-                           {/* Integrated Progress Bar & Action */}
-                           <div className="bg-slate-50 rounded-2xl p-1.5 flex items-center gap-3 pr-2 border border-slate-100">
-                              <div className="flex-1 pl-3 py-1">
-                                 <div className="flex justify-between items-end mb-1.5">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">清单进度</span>
-                                    <span className="text-xs font-black text-sky-600">{progress}%</span>
+                                 {/* Delete Button */}
+                                 <button
+                                    onClick={(e) => handleDeleteTrip(e, trip.id)}
+                                    className="w-9 h-9 rounded-full bg-black/20 hover:bg-red-500/90 backdrop-blur-md flex items-center justify-center text-white border border-white/10 transition-all active:scale-95 group/btn"
+                                 >
+                                    <Trash2 size={16} className="opacity-80 group-hover/btn:opacity-100" />
+                                 </button>
+                              </div>
+
+                              {/* Title Overlay */}
+                              <div className="absolute bottom-0 left-0 w-full p-6">
+                                 <div className="flex items-center gap-2 mb-2">
+                                     <Icon size={14} className="text-white/80" />
+                                     <span className="text-[10px] font-bold text-white/80 tracking-widest uppercase opacity-80">{tripTypeToChinese(trip.type)}之旅</span>
                                  </div>
-                                 <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
-                                    <div 
-                                       className="h-full bg-gradient-to-r from-sky-400 to-blue-500 rounded-full transition-all duration-1000 ease-out"
-                                       style={{ width: `${progress}%` }}
-                                    ></div>
+                                 <h3 className="text-3xl font-black text-white leading-tight mb-2 shadow-sm">{trip.title}</h3>
+                                 <div className="flex items-center gap-2 text-white/70 text-xs font-medium">
+                                    <MapPin size={12} /> {trip.location}
                                  </div>
                               </div>
-                              <button 
-                                 onClick={() => handleCheckTrip(trip)}
-                                 className="h-10 px-5 bg-slate-800 text-white rounded-xl text-xs font-bold shadow-lg shadow-slate-900/20 hover:bg-black transition-colors flex items-center gap-2 group-hover:scale-105 duration-300"
-                              >
-                                 查验 <ArrowRight size={14} className="opacity-70" />
-                              </button>
+                           </div>
+
+                           {/* 2. Info & Action Area */}
+                           <div className="px-5 pt-5 pb-3">
+                              {/* Info Grid */}
+                              <div className="flex justify-between items-center mb-6">
+                                 <div className="flex gap-6">
+                                    <div className="flex flex-col">
+                                       <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">出发日期</span>
+                                       <span className="text-sm font-bold text-slate-700">{trip.date.split(' - ')[0]}</span>
+                                    </div>
+                                    <div className="flex flex-col">
+                                       <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">行程天数</span>
+                                       <span className="text-sm font-bold text-slate-700">{trip.days} 天</span>
+                                    </div>
+                                 </div>
+                                 
+                                 {/* Mini Avatars */}
+                                 <div className="flex -space-x-2">
+                                    {[...Array(Math.min(3, trip.people))].map((_, i) => (
+                                       <div key={i} className="w-8 h-8 rounded-full border-2 border-white bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-500 shadow-sm">
+                                          {String.fromCharCode(65+i)}
+                                       </div>
+                                    ))}
+                                    {trip.people > 3 && (
+                                       <div className="w-8 h-8 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-[10px] font-bold text-slate-400 shadow-sm">
+                                          +{trip.people - 3}
+                                       </div>
+                                    )}
+                                 </div>
+                              </div>
+
+                              {/* Integrated Progress Bar & Action */}
+                              <div className="bg-slate-50 rounded-2xl p-1.5 flex items-center gap-3 pr-2 border border-slate-100">
+                                 <div className="flex-1 pl-3 py-1">
+                                    <div className="flex justify-between items-end mb-1.5">
+                                       <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wide">清单进度</span>
+                                       <span className="text-xs font-black text-sky-600">{progress}%</span>
+                                    </div>
+                                    <div className="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
+                                       <div 
+                                          className="h-full bg-gradient-to-r from-sky-400 to-blue-500 rounded-full transition-all duration-1000 ease-out"
+                                          style={{ width: `${progress}%` }}
+                                       ></div>
+                                    </div>
+                                 </div>
+                                 <button 
+                                    onClick={() => handleCheckTrip(trip)}
+                                    className="h-10 px-5 bg-slate-800 text-white rounded-xl text-xs font-bold shadow-lg shadow-slate-900/20 hover:bg-black transition-colors flex items-center gap-2 group-hover:scale-105 duration-300"
+                                 >
+                                    查验 <ArrowRight size={14} className="opacity-70" />
+                                 </button>
+                              </div>
                            </div>
                         </div>
                      </div>
