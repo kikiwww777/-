@@ -25,7 +25,9 @@ import {
   ThermometerSun, Wind, Umbrella, Smartphone, Shirt, Plug, CreditCard,
   X, CheckCheck, ListTodo, ClipboardList, Play, Info, StickyNote, Notebook,
   CloudSun, Droplets, ChevronUp,
-  AlertTriangle
+  AlertTriangle, CloudRain,
+  Eye, RefreshCcw, ListMusic, SkipForward, PlayCircle, User,
+  Cookie, ShieldAlert, Package, Navigation, ArrowDown, Grid, LayoutGrid, CheckSquare, Square, Lock, Unlock // Added generic icons mapping
 } from 'lucide-react';
 
 // --- 类型定义 & 模拟数据 ---
@@ -57,7 +59,7 @@ const DEMO_TRIPS: Trip[] = [
     id: '1', 
     title: '上海 · 陆家嘴金融峰会', 
     location: '上海市·浦东新区', 
-    date: '12月5日 - 6日', 
+    date: '12.05 - 12.06', 
     status: '准备中',
     type: 'business',
     image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=800',
@@ -74,7 +76,7 @@ const DEMO_TRIPS: Trip[] = [
     id: '2', 
     title: '三亚 · 热带海滨度假', 
     location: '海南省·三亚市', 
-    date: '12月15日 - 20日', 
+    date: '12.15 - 12.20', 
     status: '准备中',
     type: 'tourism',
     image: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?auto=format&fit=crop&q=80&w=800',
@@ -88,17 +90,35 @@ const DEMO_TRIPS: Trip[] = [
   }
 ];
 
-// Mock Checklist Data for Detail View - FLATTENED as per request
+// --- 10大分类配置 (10 Categories Configuration) ---
+const CATEGORY_CONFIG: Record<string, { icon: any, color: string, bg: string, border: string }> = {
+  '证件类': { icon: Ticket, color: 'text-orange-500', bg: 'bg-orange-50', border: 'border-orange-100' },
+  '衣物类': { icon: Shirt, color: 'text-blue-500', bg: 'bg-blue-50', border: 'border-blue-100' },
+  '电子设备': { icon: Smartphone, color: 'text-violet-500', bg: 'bg-violet-50', border: 'border-violet-100' },
+  '洗漱用品': { icon: Droplets, color: 'text-cyan-500', bg: 'bg-cyan-50', border: 'border-cyan-100' },
+  '药品类': { icon: Heart, color: 'text-rose-500', bg: 'bg-rose-50', border: 'border-rose-100' },
+  '食品类': { icon: Utensils, color: 'text-amber-500', bg: 'bg-amber-50', border: 'border-amber-100' },
+  '户外用品': { icon: Tent, color: 'text-emerald-500', bg: 'bg-emerald-50', border: 'border-emerald-100' },
+  '办公用品': { icon: Briefcase, color: 'text-slate-500', bg: 'bg-slate-50', border: 'border-slate-100' },
+  '安全用品': { icon: AlertTriangle, color: 'text-yellow-500', bg: 'bg-yellow-50', border: 'border-yellow-100' },
+  '其他用品': { icon: Package, color: 'text-stone-500', bg: 'bg-stone-50', border: 'border-stone-100' },
+};
+
+// Mock Checklist Data updated to use the 10 categories
 const INITIAL_CHECKLIST = [
-    { id: 'c1', text: '身份证 / 护照', checked: true },
-    { id: 'c2', text: '登机牌 (电子/纸质)', checked: true },
-    { id: 'c3', text: '酒店预订确认单', checked: false },
-    { id: 'e1', text: '手机充电器 & 数据线', checked: false },
-    { id: 'e2', text: '充电宝 (20000mAh)', checked: false },
-    { id: 'e3', text: '降噪耳机', checked: false },
-    { id: 'cl1', text: '换洗衣物 (3套)', checked: false },
-    { id: 'cl2', text: '睡衣', checked: true },
-    { id: 'cl3', text: '舒适的一双鞋', checked: false },
+    { id: 'c1', text: '身份证 / 护照', checked: false, category: '证件类' },
+    { id: 'c2', text: '登机牌 (电子/纸质)', checked: false, category: '证件类' },
+    { id: 'cl1', text: '换洗衣物 (3套)', checked: false, category: '衣物类' },
+    { id: 'cl2', text: '舒适运动鞋', checked: false, category: '衣物类' },
+    { id: 'e1', text: '手机 & 充电器', checked: false, category: '电子设备' },
+    { id: 'e2', text: '充电宝 (20000mAh)', checked: false, category: '电子设备' },
+    { id: 't1', text: '洗面奶 & 牙刷', checked: false, category: '洗漱用品' },
+    { id: 'm1', text: '感冒药 & 创可贴', checked: false, category: '药品类' },
+    { id: 'f1', text: '能量棒 / 巧克力', checked: false, category: '食品类' },
+    { id: 'o1', text: '遮阳伞 / 雨衣', checked: false, category: '户外用品' },
+    { id: 'of1', text: '笔记本电脑', checked: false, category: '办公用品' },
+    { id: 's1', text: '防狼报警器', checked: false, category: '安全用品' },
+    { id: 'ot1', text: 'U型枕', checked: false, category: '其他用品' },
 ];
 
 // 预设模板列表
@@ -119,6 +139,22 @@ const TEMPLATE_OPTIONS = [
 
 // --- 辅助组件 ---
 
+// Wave Animation Styles Component
+const WaveStyles = () => (
+  <style>{`
+    @keyframes wave {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(-50%); }
+    }
+    .animate-wave {
+      animation: wave 12s linear infinite;
+    }
+    .animate-wave-fast {
+      animation: wave 8s linear infinite;
+    }
+  `}</style>
+);
+
 // 1. 模拟微信小程序顶部导航栏 (Capsule Navigation Bar)
 const WeChatNavBar = ({ 
   title, 
@@ -126,14 +162,16 @@ const WeChatNavBar = ({
   onBack, 
   showBack,
   transparent = false,
-  darkMode = false
+  darkMode = false,
+  centerTitle = false
 }: { 
   title: string, 
   layoutMode: LayoutMode, 
   onBack?: () => void, 
   showBack?: boolean,
   transparent?: boolean,
-  darkMode?: boolean
+  darkMode?: boolean,
+  centerTitle?: boolean
 }) => {
   // 根据主题动态调整导航栏样式
   const bgStyle = transparent 
@@ -159,7 +197,7 @@ const WeChatNavBar = ({
 
   if (darkMode) {
       capsuleBorder = 'border-white/20';
-      capsuleBg = 'bg-white/10 backdrop-blur-md';
+      capsuleBg = 'bg-white/20 backdrop-blur-md';
       capsuleIcon = 'text-white';
   } else if (layoutMode === 'neo') {
       capsuleBorder = 'border-black';
@@ -180,7 +218,7 @@ const WeChatNavBar = ({
                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                    // Enhanced logic: If transparent, ALWAYS add a backdrop for visibility
                    transparent 
-                   ? 'bg-white/20 backdrop-blur-md border border-white/20 shadow-sm' 
+                   ? 'bg-black/10 backdrop-blur-md border border-white/10 shadow-sm' 
                    : !darkMode && layoutMode !== 'neo' ? 'hover:bg-black/5' : ''
                }`}>
                    <ChevronLeft size={20} className={transparent ? 'text-white' : textStyle} strokeWidth={2.5} />
@@ -195,14 +233,14 @@ const WeChatNavBar = ({
          </div>
          
          {/* 标题 */}
-         <div className={`text-[17px] ${textStyle} ${transparent ? 'opacity-0' : 'opacity-100'} transition-opacity`}>
+         <div className={`text-[17px] ${textStyle} ${transparent ? 'opacity-100' : 'opacity-100'} transition-opacity`}>
             {title}
          </div>
 
          {/* 微信胶囊按钮 (Capsule Button) */}
          <div className={`absolute right-[7px] top-1/2 -translate-y-1/2 w-[87px] h-[32px] rounded-full border flex items-center justify-evenly ${capsuleBorder} ${capsuleBg} ${capsuleIcon} shadow-sm`}>
             <MoreHorizontal size={16} />
-            <div className={`w-[1px] h-[18px] ${darkMode ? 'bg-white/20' : 'bg-black/10'}`}></div>
+            <div className={`w-[1px] h-[18px] ${darkMode ? 'bg-white/30' : 'bg-black/10'}`}></div>
             <div className="w-[16px] h-[16px] rounded-full border-2 border-current flex items-center justify-center">
               <div className="w-[4px] h-[4px] bg-current rounded-full"></div>
             </div>
@@ -225,10 +263,16 @@ const App: React.FC = () => {
   // New State: Viewing a specific trip detail
   const [viewingTrip, setViewingTrip] = useState<Trip | null>(null);
   
-  // New State: Checklist Data for interaction - FLAT LIST
+  // New State: Checklist Data for interaction
   const [checklist, setChecklist] = useState(INITIAL_CHECKLIST);
-  // Checklist Accordion State
-  const [isChecklistExpanded, setIsChecklistExpanded] = useState(true);
+  const [skippedItems, setSkippedItems] = useState<Set<string>>(new Set());
+  
+  // Detail View Mode: 'player' | 'playlist'
+  // Modified: Default to FALSE, opens left drawer
+  const [isPlaylistOpen, setIsPlaylistOpen] = useState(false);
+
+  // New State: Focus Check Index (for the card view)
+  const [currentCheckIndex, setCurrentCheckIndex] = useState(0);
 
   // 行程列表页面的筛选状态
   const [searchQuery, setSearchQuery] = useState('');
@@ -241,6 +285,7 @@ const App: React.FC = () => {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   const [selectedTripType, setSelectedTripType] = useState<string>('tourism');
   const [travelerCount, setTravelerCount] = useState(1);
+  const [tripName, setTripName] = useState(''); // New State for Trip Name
 
   // Template Sheet State
   const [isTemplateSheetOpen, setIsTemplateSheetOpen] = useState(false);
@@ -248,6 +293,8 @@ const App: React.FC = () => {
 
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  // Ref for the checklist scroll container
+  const checklistScrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // 布局模式改变时，同步更新聊天气泡等内部主题
@@ -265,6 +312,33 @@ const App: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Reset checklist index when opening a trip
+  useEffect(() => {
+     if (viewingTrip) {
+         setCurrentCheckIndex(0);
+         setSkippedItems(new Set());
+         setIsPlaylistOpen(false);
+         // Reset checklist checks for demo
+         // IMPORTANT: If trip is '已完成', we set items to checked initially for demo consistency, 
+         // OR we just rely on local checklist state if it was persisted. 
+         // For this demo, let's assume if it's '已完成', everything is checked.
+         const isCompleted = viewingTrip.status === '已完成';
+         setChecklist(prev => prev.map(p => ({...p, checked: isCompleted ? true : false})));
+     }
+  }, [viewingTrip]);
+
+  // AUTO SCROLL LOGIC: Whenever currentCheckIndex changes, scroll the active item into view
+  useEffect(() => {
+    if (viewingTrip && checklistScrollRef.current) {
+        // Find the active element id
+        const activeElementId = `item-${checklist[currentCheckIndex]?.id}`;
+        const el = document.getElementById(activeElementId);
+        if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+  }, [currentCheckIndex, viewingTrip]);
 
   const toggleDemoData = () => {
     setTrips(prev => prev.length > 0 ? [] : DEMO_TRIPS);
@@ -343,12 +417,52 @@ const App: React.FC = () => {
       setIsTemplateSheetOpen(false);
   };
 
-  // Checklist Interaction - Toggle for flattened list
-  const toggleCheckItem = (itemId: string) => {
-      setChecklist(prev => prev.map(item => {
-          if (item.id !== itemId) return item;
-          return { ...item, checked: !item.checked };
-      }));
+  // Card View Interaction Logic
+  const handlePassItem = () => {
+      if (currentCheckIndex < checklist.length) {
+          const currentItem = checklist[currentCheckIndex];
+          setSkippedItems(prev => new Set(prev).add(currentItem.id));
+          setCurrentCheckIndex(prev => prev + 1);
+      }
+  };
+
+  const handleConfirmItem = () => {
+      if (currentCheckIndex < checklist.length) {
+          const currentItem = checklist[currentCheckIndex];
+          setChecklist(prev => prev.map(item => item.id === currentItem.id ? { ...item, checked: true } : item));
+          setCurrentCheckIndex(prev => prev + 1);
+      }
+  };
+
+  const handleToggleItemManual = (id: string) => {
+      // Locked Check: Do not toggle if trip is completed
+      if (viewingTrip?.status === '已完成') return;
+
+      // Find index
+      const idx = checklist.findIndex(i => i.id === id);
+      setChecklist(prev => prev.map(item => item.id === id ? { ...item, checked: !item.checked } : item));
+      if (idx !== -1) setCurrentCheckIndex(idx);
+  };
+  
+  const handleCompleteTrip = () => {
+      if (!viewingTrip) return;
+
+      if (window.confirm("确认所有物品已打包完成？\n确认后行程将封箱，无法再修改物品状态。")) {
+          // Update global state
+          setTrips(prev => prev.map(t => t.id === viewingTrip.id ? { ...t, status: '已完成' } : t));
+          // Update local state
+          setViewingTrip(prev => prev ? { ...prev, status: '已完成' } : null);
+      }
+  };
+
+  const handleReactivateTrip = () => {
+      if (!viewingTrip) return;
+       if (window.confirm("需要重新打开箱子吗？\n这将允许你再次编辑物品状态。")) {
+          // Update global state
+          setTrips(prev => prev.map(t => t.id === viewingTrip.id ? { ...t, status: '准备中' } : t));
+          // Update local state
+          setViewingTrip(prev => prev ? { ...prev, status: '准备中' } : null);
+      }
   };
 
   // --- 视觉风格配置系统 ---
@@ -363,6 +477,11 @@ const App: React.FC = () => {
     const layoutKey = layout === 'wanderlust' ? 'classic' : layout;
     const selectedIcon = icons[type][layoutKey] || icons[type].classic;
     return { Icon: selectedIcon };
+  };
+
+  // Helper to get Category Config
+  const getCategoryConfig = (categoryName: string) => {
+      return CATEGORY_CONFIG[categoryName] || { icon: MoreHorizontal, color: 'text-slate-400', bg: 'bg-slate-500/10', border: 'border-slate-500/30' };
   };
 
   // --- 3. 空状态组件 (New Premium Empty State) ---
@@ -446,6 +565,25 @@ const App: React.FC = () => {
                </div>
             </div>
 
+            {/* 1.5. TRIP NAME Input */}
+            <div className="mb-10">
+               <label className="block text-slate-400 text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <Tag size={12} className="text-sky-500" /> 行程名称 <span className="text-[10px] opacity-50">TRIP NAME</span>
+               </label>
+               <div className="relative group">
+                   <input 
+                      type="text" 
+                      placeholder="给行程起个好听的名字..." 
+                      className="w-full bg-transparent text-3xl font-black text-slate-900 placeholder:text-slate-200 outline-none border-b-2 border-slate-200 pb-4 focus:border-sky-500 transition-all duration-500"
+                      value={tripName}
+                      onChange={(e) => setTripName(e.target.value)}
+                   />
+                   <div className="absolute right-0 bottom-6 opacity-0 group-focus-within:opacity-100 transition-opacity duration-500">
+                      <PenLine size={20} className="text-sky-500" />
+                   </div>
+               </div>
+            </div>
+
             {/* 2. CONTROL DECK: Dates & Travelers (Merged White Panel) */}
             <div className="mb-10">
                <div className="bg-white/80 backdrop-blur-xl rounded-[24px] border border-white p-1 flex flex-col divide-y divide-slate-100 shadow-[0_20px_40px_-12px_rgba(0,0,0,0.08)]">
@@ -478,6 +616,51 @@ const App: React.FC = () => {
                           <button onClick={() => setTravelerCount(travelerCount + 1)} className="w-6 h-6 rounded-full bg-white flex items-center justify-center hover:bg-slate-50 text-slate-600 shadow-sm">+</button>
                       </div>
                   </div>
+               </div>
+            </div>
+
+            {/* NEW: Weather Forecast */}
+            <div className="mb-10">
+               <label className="block text-slate-400 text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <ThermometerSun size={12} className="text-sky-500" /> 天气预报 <span className="text-[10px] opacity-50">15 DAYS FORECAST</span>
+               </label>
+               <div className="flex gap-3 overflow-x-auto pb-4 -mx-6 px-6 scrollbar-hide snap-x">
+                  {Array.from({ length: 15 }).map((_, i) => {
+                     // Mock logic inside map
+                     // Start date: 12.24 as per demo context
+                     const startMonth = 11; // Dec
+                     const startDay = 24;
+                     const current = new Date(2024, startMonth, startDay + i);
+                     
+                     const m = current.getMonth() + 1;
+                     const d = current.getDate();
+                     const week = ['周日','周一','周二','周三','周四','周五','周六'][current.getDay()];
+                     
+                     // Deterministic pseudo-random for stable demo
+                     const rand = (i * 123 + 55) % 100; 
+                     let type = 'sunny';
+                     if (rand > 60) type = 'cloudy';
+                     if (rand > 80) type = 'rainy';
+                     if (rand > 90) type = 'partly';
+
+                     const maxT = 20 + (rand % 10);
+                     const minT = maxT - 6;
+
+                     return (
+                        <div key={i} className="snap-center min-w-[72px] flex flex-col items-center bg-white/60 backdrop-blur-md rounded-2xl py-3 border border-white shadow-sm shrink-0">
+                           <span className="text-[10px] font-bold text-slate-400 mb-1">{week}</span>
+                           <span className="text-xs font-bold text-slate-800 mb-2">{m}.{d}</span>
+                           <div className="mb-2">
+                                {type === 'sunny' && <Sun size={20} className="text-amber-400" />}
+                                {type === 'cloudy' && <Cloud size={20} className="text-slate-400" />}
+                                {type === 'rainy' && <CloudRain size={20} className="text-blue-400" />}
+                                {type === 'partly' && <CloudSun size={20} className="text-orange-400" />}
+                           </div>
+                           <span className="text-xs font-bold text-slate-700">{maxT}°</span>
+                           <span className="text-[10px] font-medium text-slate-400">{minT}°</span>
+                        </div>
+                     );
+                  })}
                </div>
             </div>
 
@@ -641,207 +824,197 @@ const App: React.FC = () => {
     );
   };
 
-  // --- 5. 行程详情页 - Smart Dashboard Style ---
+  // --- 5. 行程详情页 - The "Wanderlust Liquid" Layout ---
   const renderTripDetail = () => {
     if (!viewingTrip) return null;
-    const { Icon } = getTripVisuals(viewingTrip.type, layoutMode);
     
-    // Calculate progress for flat list
-    const totalItems = checklist.length;
-    const checkedItemsCount = checklist.filter(i => i.checked).length;
-    // Calculate percentage, default to 0 if totalItems is 0
-    const progress = totalItems > 0 ? Math.round((checkedItemsCount / totalItems) * 100) : 0;
-
+    // Stats calculation
+    const checkedCount = checklist.filter(i => i.checked).length;
+    const totalCount = checklist.length;
+    const progress = totalCount > 0 ? (checkedCount / totalCount) * 100 : 0;
+    const isCompleted = viewingTrip.status === '已完成';
+    const isAllChecked = checkedCount === totalCount && totalCount > 0;
+    
     return (
-        <div className="min-h-screen bg-[#F5F6F8] animate-fade-in relative z-[60] flex flex-col">
+        <div className="fixed inset-0 z-[100] bg-[#f8fafc] text-slate-800 flex flex-col font-sans overflow-hidden">
             
-            {/* 1. Immersive Hero Section (Fixed at Top) */}
-            <div className="relative h-[360px] w-full shrink-0">
-                <img src={viewingTrip.image} className="w-full h-full object-cover transition-transform duration-1000" alt={viewingTrip.title} />
-                <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-[#F5F6F8]"></div>
-                
-                {/* Navbar Overlay */}
-                <WeChatNavBar 
-                    title="" 
-                    layoutMode={layoutMode} 
-                    showBack={true}
-                    onBack={() => setViewingTrip(null)}
-                    transparent={true}
-                    darkMode={true}
-                />
+            {/* 0. Inject Keyframes */}
+            <WaveStyles />
 
-                {/* Floating Weather Widget */}
-                <div className="absolute top-[100px] right-6 bg-white/10 backdrop-blur-xl border border-white/20 p-4 rounded-2xl text-white shadow-xl animate-slide-up flex flex-col items-center gap-1 w-[80px]">
-                    <CloudSun size={28} className="text-amber-300 mb-1" />
-                    <span className="text-lg font-black leading-none">24°</span>
-                    <span className="text-[10px] opacity-80 font-medium">多云转晴</span>
-                    <div className="w-full h-[1px] bg-white/20 my-1"></div>
-                    <div className="flex items-center gap-1 text-[9px] opacity-70">
-                       <Droplets size={10} /> 30%
+            {/* 1. Liquid Progress Background */}
+            <div className="absolute inset-0 z-0">
+                 {/* Liquid Container */}
+                 <div 
+                    className={`absolute bottom-0 left-0 right-0 transition-all duration-1000 ease-in-out z-0 flex flex-col justify-end`}
+                    style={{ height: isCompleted ? '100%' : `${Math.max(progress, 8)}%` }} // Minimum height to show wave
+                 >
+                    {/* Wave Crests - Double Wave Effect */}
+                    <div className="w-full h-[40px] relative">
+                         {/* Back Wave (Slower) */}
+                         <div className="absolute bottom-0 left-0 w-[200%] h-full flex items-end animate-wave ml-[-50px]">
+                            <svg className={`w-full h-full ${isCompleted ? 'text-emerald-200/50' : 'text-sky-200/50'} fill-current`} viewBox="0 0 1440 320" preserveAspectRatio="none">
+                                <path d="M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+                            </svg>
+                         </div>
+                         {/* Front Wave (Faster) */}
+                         <div className="absolute bottom-0 left-0 w-[200%] h-full flex items-end animate-wave-fast">
+                            <svg className={`w-full h-full ${isCompleted ? 'text-emerald-300' : 'text-sky-300'} fill-current`} viewBox="0 0 1440 320" preserveAspectRatio="none">
+                                <path d="M0,96L48,112C96,128,192,160,288,186.7C384,213,480,235,576,213.3C672,192,768,128,864,128C960,128,1056,192,1152,208C1248,224,1344,192,1392,176L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
+                            </svg>
+                         </div>
                     </div>
+                    
+                    {/* Solid Water Body */}
+                    <div className={`w-full flex-1 ${isCompleted ? 'bg-emerald-300' : 'bg-sky-300'} transition-colors duration-1000`}></div>
+                 </div>
+
+                 {/* Texture Overlay */}
+                 <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/graphy.png')] pointer-events-none"></div>
+                 
+                 {/* Lock Overlay for Completed State */}
+                 {isCompleted && (
+                     <div className="absolute inset-0 bg-emerald-500/10 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center pointer-events-none animate-fade-in">
+                        <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-md shadow-lg mb-4">
+                            <Lock size={32} className="text-white" />
+                        </div>
+                        <span className="text-white text-sm font-bold uppercase tracking-[0.3em] shadow-sm">已封箱保护</span>
+                     </div>
+                 )}
+            </div>
+
+            {/* 2. Compact Glass Header (Light Theme) */}
+            <div className="relative z-30 pt-14 pb-2 px-6 flex justify-between items-center shrink-0 bg-gradient-to-b from-[#f8fafc] to-transparent">
+                <button onClick={() => setViewingTrip(null)} className="flex items-center gap-2 group active:opacity-60 transition-opacity p-2 -ml-2 rounded-full hover:bg-slate-100">
+                    <div className="w-8 h-8 rounded-full border border-slate-200 flex items-center justify-center bg-white/60 backdrop-blur-md shadow-sm">
+                        <ChevronDown size={18} className="text-slate-600" />
+                    </div>
+                </button>
+                <div className="flex flex-col items-center">
+                    <span className={`text-[10px] font-black tracking-[0.25em] uppercase mb-0.5 ${isCompleted ? 'text-emerald-500' : 'text-sky-500'}`}>
+                        {isCompleted ? '行程已封箱' : '智能清单'}
+                    </span>
+                    <span className="text-xs font-bold text-slate-800">{viewingTrip.title}</span>
                 </div>
-
-                {/* Hero Content */}
-                <div className="absolute bottom-8 left-6 right-6">
-                    <div className="flex items-center gap-2 mb-3">
-                         <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold border border-white/20 flex items-center gap-1.5 shadow-lg text-white">
-                            <Icon size={12} className="text-sky-300" />
-                            <span className="uppercase tracking-wider">{tripTypeToChinese(viewingTrip.type)}</span>
-                         </div>
-                         <div className="bg-sky-500/80 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold border border-white/10 shadow-lg text-white">
-                             {viewingTrip.days} 天行程
-                         </div>
-                    </div>
-                    <h1 className="text-3xl font-black leading-tight mb-2 tracking-tight text-slate-800 drop-shadow-sm">{viewingTrip.title}</h1>
-                    <div className="flex items-center gap-2 text-slate-600 text-sm font-bold">
-                        <MapPin size={16} className="text-slate-400" /> {viewingTrip.location}
+                <div className="w-10 flex justify-end">
+                    <div className={`bg-white/50 border border-slate-200 px-2 py-1 rounded-md text-[10px] font-mono font-bold shadow-sm ${isCompleted ? 'text-emerald-600 bg-emerald-50 border-emerald-100' : 'text-sky-600'}`}>
+                        {Math.round(progress)}%
                     </div>
                 </div>
             </div>
 
-            {/* 3. Content Area - Merged View */}
-            <div className="flex-1 px-4 py-6 pb-32 min-h-[50vh] space-y-6">
-               
-               {/* A. Itinerary Details (Now at the TOP) */}
-               <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)]">
-                     <div className="flex items-center gap-2 mb-4 pb-4 border-b border-slate-50">
-                        <div className="bg-slate-100 p-2 rounded-lg text-slate-600">
-                            <Notebook size={18} />
-                        </div>
-                        <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wide">行程详情</h3>
-                     </div>
-                     <div className="text-sm text-slate-600 leading-7 whitespace-pre-line">
-                        {viewingTrip.detail || '暂无详细行程规划。'}
-                     </div>
-               </div>
+            {/* 3. The GRID CONTENT (Scrollable) */}
+            <div className="relative z-20 flex-1 overflow-y-auto px-4 pb-32 scrollbar-hide pt-2">
+                
+                {/* Pending Items (The Grid) */}
+                <div className="mb-12">
+                     {Object.keys(CATEGORY_CONFIG).map((catKey) => {
+                        const catItems = checklist.filter(item => item.category === catKey && !item.checked);
+                        if (catItems.length === 0) return null;
+                        
+                        const config = CATEGORY_CONFIG[catKey];
+                        const CatIcon = config.icon;
 
-               {/* B. Essential Info Cards (Notes & Date) */}
-               <div className="grid grid-cols-1 gap-4">
-                   
-                   {/* Notes - Added back as requested */}
-                   <div className="bg-amber-50 rounded-2xl p-5 border border-amber-100 relative overflow-hidden shadow-sm">
-                         <div className="absolute top-0 right-0 p-4 opacity-10">
-                            <StickyNote size={60} className="text-amber-500 rotate-12" />
-                         </div>
-                         <div className="flex items-center gap-2 mb-2 relative z-10">
-                            <StickyNote size={16} className="text-amber-600" />
-                            <h3 className="text-xs font-bold text-amber-800 uppercase tracking-wide">重要备注</h3>
-                         </div>
-                         <p className="text-sm text-amber-900/80 leading-relaxed font-medium relative z-10 whitespace-pre-line">
-                            {viewingTrip.notes || '暂无备注信息。'}
-                         </p>
-                    </div>
-
-                   {/* Date & Countdown */}
-                   <div className="bg-white rounded-2xl p-4 border border-slate-100 flex justify-between items-center shadow-sm">
-                        <div className="flex items-center gap-3">
-                            <div className="bg-blue-50 text-blue-500 p-2 rounded-lg"><CalendarDays size={18} /></div>
-                            <div>
-                                <p className="text-xs font-bold text-slate-400">出发日期</p>
-                                <p className="text-sm font-bold text-slate-800">{viewingTrip.date}</p>
-                            </div>
-                        </div>
-                        <div className="text-right">
-                            <p className="text-xs font-bold text-slate-400">倒计时</p>
-                            <p className="text-lg font-black text-slate-900">{viewingTrip.countdown} 天</p>
-                        </div>
-                   </div>
-               </div>
-
-               {/* C. Checklist Section - Flat List (Accordion Style) */}
-               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden animate-slide-up">
-                   {/* Header (Toggle) */}
-                   <div 
-                        className="flex justify-between items-center p-5 bg-white cursor-pointer hover:bg-slate-50/50 transition-colors"
-                        onClick={() => setIsChecklistExpanded(!isChecklistExpanded)}
-                   >
-                        <div className="flex items-center gap-2">
-                            <h3 className="text-lg font-black text-slate-800">物品清单</h3>
-                            <span className="text-xs font-bold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">{totalItems} 项</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                             <div className="text-right">
-                                <span className="text-[10px] font-bold text-slate-400 block uppercase tracking-wider">完成度</span>
-                                <span className="text-sm font-black text-sky-600">{progress}%</span>
-                             </div>
-                             <div className={`w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 transition-transform duration-300 ${isChecklistExpanded ? 'rotate-180' : ''}`}>
-                                <ChevronDown size={18} />
-                             </div>
-                        </div>
-                   </div>
-                   
-                   {/* Progress Bar (Visible even when collapsed?) -> Let's keep it inside or visible. I'll put it just under header if expanded */}
-                   
-                   {isChecklistExpanded && (
-                       <div className="px-5 pb-5">
-                            {/* Bar */}
-                            <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden mb-6">
-                                <div 
-                                    className="h-full bg-gradient-to-r from-sky-400 to-blue-500 rounded-full transition-all duration-1000 ease-out"
-                                    style={{ width: `${progress}%` }}
-                                ></div>
-                            </div>
-
-                            {/* Flat List Items */}
-                            <div className="flex flex-col gap-2">
-                                {checklist.map((item) => (
-                                    <div 
-                                        key={item.id} 
-                                        onClick={() => toggleCheckItem(item.id)}
-                                        className={`
-                                            relative p-4 rounded-xl transition-all duration-200 cursor-pointer flex justify-between items-center group
-                                            ${item.checked 
-                                                ? 'bg-[#F0FDF4] border border-[#DCFCE7]' /* Light Green for checked like screenshot implies finished state, or use generic light */
-                                                : 'bg-slate-50 border border-slate-100 hover:border-sky-200'
-                                            }
-                                        `}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            {/* Name */}
-                                            <span className={`text-sm font-bold transition-colors ${item.checked ? 'text-emerald-600' : 'text-sky-600'}`}>
+                        return (
+                            <div key={catKey} className="mb-6 animate-slide-up">
+                                {/* Sticky-ish Header */}
+                                <div className="flex items-center gap-2 mb-3 pl-1 opacity-80">
+                                    <CatIcon size={12} className={config.color} />
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">{catKey}</span>
+                                    <div className="h-[1px] flex-1 bg-slate-200"></div>
+                                </div>
+                                
+                                {/* 2-Column Grid */}
+                                <div className="grid grid-cols-2 gap-3">
+                                    {catItems.map((item) => (
+                                        <div 
+                                            key={item.id}
+                                            onClick={() => handleToggleItemManual(item.id)}
+                                            className={`
+                                                relative h-24 rounded-2xl border flex flex-col justify-between p-3 cursor-pointer group transition-all duration-200
+                                                bg-white border-slate-100 shadow-[0_2px_8px_rgba(0,0,0,0.04)]
+                                                ${isCompleted 
+                                                    ? 'opacity-50 cursor-not-allowed' 
+                                                    : 'active:scale-95 hover:shadow-md hover:border-sky-100 hover:translate-y-[-2px]'
+                                                }
+                                            `}
+                                        >
+                                            <div className="flex justify-between items-start">
+                                                <div className={`w-6 h-6 rounded-full ${config.bg} flex items-center justify-center`}>
+                                                    <CatIcon size={12} className={config.color} />
+                                                </div>
+                                                <div className={`w-4 h-4 rounded-full border transition-colors ${isCompleted ? 'border-slate-200' : 'border-slate-200 group-hover:border-sky-400'}`}></div>
+                                            </div>
+                                            <span className="text-sm font-bold text-slate-700 leading-tight line-clamp-2">
                                                 {item.text}
                                             </span>
                                         </div>
-                                        
-                                        {/* Status Text (Right side like screenshot) */}
-                                        <span className={`text-xs font-bold border-b-2 transition-all ${
-                                            item.checked 
-                                            ? 'text-slate-400 border-slate-300' 
-                                            : 'text-transparent border-transparent group-hover:text-slate-300 group-hover:border-slate-200'
-                                        }`}>
-                                            {item.checked ? '已查验' : '待查验'}
-                                        </span>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
-                       </div>
-                   )}
-               </div>
+                        )
+                     })}
+                     
+                     {/* Empty State when Grid is Clear */}
+                     {checklist.every(i => i.checked) && !isCompleted && (
+                         <div className="flex flex-col items-center justify-center py-20 animate-fade-in relative z-10">
+                             <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mb-4 border border-white/40 shadow-lg">
+                                 <CheckCheck size={40} className="text-white" />
+                             </div>
+                             <h3 className="text-xl font-black text-white shadow-sm">整装待发</h3>
+                             <p className="text-white/80 text-xs mt-2 font-medium">点击下方按钮封箱，出发！</p>
+                         </div>
+                     )}
+                </div>
 
+                {/* Completed Items (The Bottom Stack - Submerged) */}
+                {checklist.some(i => i.checked) && (
+                    <div className="pt-6 pb-10 relative z-10">
+                        <div className="flex items-center gap-2 mb-4 pl-1">
+                            <Package size={12} className="text-white/70" />
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-white/70">已装箱 ({checklist.filter(i => i.checked).length})</span>
+                        </div>
+                        <div className="grid grid-cols-4 gap-2">
+                             {checklist.filter(i => i.checked).map((item) => (
+                                 <div 
+                                    key={item.id}
+                                    onClick={() => handleToggleItemManual(item.id)}
+                                    className={`
+                                        aspect-square rounded-xl flex flex-col items-center justify-center gap-1 transition-transform
+                                        bg-white/10 backdrop-blur-sm border border-white/20
+                                        ${isCompleted ? 'cursor-not-allowed opacity-60' : 'cursor-pointer active:scale-90 hover:bg-white/20'}
+                                    `}
+                                 >
+                                    <Check size={16} className="text-white" />
+                                    <span className="text-[9px] font-bold text-white truncate w-full text-center px-1 opacity-90">{item.text}</span>
+                                 </div>
+                             ))}
+                        </div>
+                    </div>
+                )}
             </div>
-
-            {/* 4. Floating Action Island (Bottom) */}
-            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[95%] max-w-[420px] z-50">
-               <div className="bg-white/90 backdrop-blur-xl border border-white/40 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.15)] rounded-2xl p-2 flex gap-2 ring-1 ring-black/5">
-                   
-                   {/* 1. Back Button */}
-                   <button 
-                       onClick={() => setViewingTrip(null)}
-                       className="w-12 h-12 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-xl flex items-center justify-center transition-colors active:scale-95 border border-slate-100"
-                   >
-                       <ChevronLeft size={20} />
-                   </button>
-
-                   {/* 2. Add Items */}
-                   <button className="flex-1 h-12 bg-slate-50 hover:bg-slate-100 text-slate-600 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-colors active:scale-95 border border-slate-100">
-                      <Plus size={18} /> <span className="text-xs">补录</span>
-                   </button>
-
-                   {/* 3. Start Check */}
-                   <button className="flex-[1.5] h-12 bg-slate-900 text-white rounded-xl text-sm font-bold flex items-center justify-center gap-2 shadow-lg shadow-slate-900/20 active:scale-95 hover:bg-black transition-all">
-                      <Play size={16} fill="currentColor" /> 开始查验
-                   </button>
-               </div>
+            
+            {/* 4. Bottom Action Area */}
+            <div className="absolute bottom-8 left-0 right-0 flex justify-center z-50 animate-slide-up px-6">
+                {isCompleted ? (
+                    <div className="flex flex-col items-center gap-3">
+                         <div className="flex items-center gap-2 text-emerald-700 font-bold bg-white/90 px-4 py-2 rounded-full border border-emerald-100 shadow-lg backdrop-blur-md">
+                             <CheckCircle2 size={16} className="text-emerald-500" /> 行程已准备就绪
+                         </div>
+                         <button 
+                             onClick={handleReactivateTrip}
+                             className="text-white/60 text-[10px] flex items-center gap-1 hover:text-white transition-colors bg-black/10 px-3 py-1 rounded-full"
+                         >
+                             <Unlock size={10} /> 重新激活清单
+                         </button>
+                    </div>
+                ) : isAllChecked ? (
+                    <button 
+                        onClick={handleCompleteTrip}
+                        className="w-full h-14 bg-white text-emerald-600 rounded-2xl font-black text-sm shadow-[0_8px_30px_rgba(0,0,0,0.1)] flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-[0.98] transition-all animate-bounce-slight border border-emerald-100"
+                    >
+                        <Package size={20} strokeWidth={2.5} /> 确认打包完成
+                    </button>
+                ) : null}
             </div>
 
         </div>
