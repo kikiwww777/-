@@ -320,9 +320,6 @@ const App: React.FC = () => {
          setSkippedItems(new Set());
          setIsPlaylistOpen(false);
          // Reset checklist checks for demo
-         // IMPORTANT: If trip is '已完成', we set items to checked initially for demo consistency, 
-         // OR we just rely on local checklist state if it was persisted. 
-         // For this demo, let's assume if it's '已完成', everything is checked.
          const isCompleted = viewingTrip.status === '已完成';
          setChecklist(prev => prev.map(p => ({...p, checked: isCompleted ? true : false})));
      }
